@@ -6,6 +6,8 @@
 import React, { useState } from 'react';
 import { X, Lock, Mail, Phone, User, Globe, Briefcase, MapPin, Instagram, Facebook, ArrowRight } from 'lucide-react';
 import { User as UserType } from '../types';
+import { signIn, signUp, fetchProfile } from '../services/auth';
+import { auth } from '../firebase';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -23,13 +25,14 @@ export default function AuthModal({
   const [role, setRole] = useState<'Buyer' | 'Organizer'>(initialTab);
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState('');
+  const [isBusy, setIsBusy] = useState(false);
 
   // Buyer & Shared Fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
-  
+
   // Optional buyer social handles
   const [buyerInstagram, setBuyerInstagram] = useState('');
   const [buyerX, setBuyerX] = useState('');
@@ -45,84 +48,60 @@ export default function AuthModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    // Load existing users from local storage to check authentication
-    const usersRaw = localStorage.getItem('abuja_events_users');
-    let users: UserType[] = usersRaw ? JSON.parse(usersRaw) : [];
-
-    if (isLogin) {
-      // Find matching user
-      const user = users.find((u) => u.email.toLowerCase() === email.toLowerCase() && u.role === role);
-      
-      // Let's allow a fallback for pre-seeded users (since they have pre-seeded emails and passwords)
-      // E.g., admin@abujaevents.com has no password in initialData, so let's allow "admin123"
-      // org1 has events@capitalcreatives.com / password "organizer123"
-      // org2 has hello@abujatechhub.ng / password "organizer123"
-      // buyer1 has buyer@gmail.com / password "buyer123"
-      let isValidPassword = false;
-      if (user) {
-        if (email.toLowerCase() === 'admin@abujaevents.com' && password === 'admin123') isValidPassword = true;
-        else if (email.toLowerCase() === 'events@capitalcreatives.com' && password === 'organizer123') isValidPassword = true;
-        else if (email.toLowerCase() === 'hello@abujatechhub.ng' && password === 'organizer123') isValidPassword = true;
-        else if (email.toLowerCase() === 'buyer@gmail.com' && password === 'buyer123') isValidPassword = true;
-        else if (user.password === password) isValidPassword = true;
-      }
-
-      if (user && isValidPassword) {
-        onSuccess(user);
+    setIsBusy(true);
+    try {
+      if (isLogin) {
+        await signIn(email, password);
+        const fbUser = auth.currentUser;
+        if (!fbUser) throw new Error('Sign-in did not complete. Please try again.');
+        const profile = await fetchProfile(fbUser);
+        onSuccess(profile || {
+          id: fbUser.uid,
+          role: 'Buyer',
+          email: fbUser.email || email,
+          fullName: fbUser.displayName || 'Account',
+          phone: fbUser.phoneNumber || '',
+        });
         onClose();
       } else {
-        setError('Invalid email or password for this account type. Try pre-seeded logins like admin@abujaevents.com (pass: admin123) or register a new one.');
+        if (!fullName || !email || !phone || !password) {
+          setError('Please fill out all required fields.');
+          return;
+        }
+        await signUp({
+          role,
+          email,
+          password,
+          fullName,
+          phone,
+          businessName: role === 'Organizer' ? businessName : undefined,
+          businessAddress: role === 'Organizer' ? businessAddress : undefined,
+          brandLogo: role === 'Organizer' ? brandLogo : undefined,
+          instagram: role === 'Organizer' ? orgInstagram : buyerInstagram,
+          facebook: role === 'Organizer' ? orgFacebook : buyerFacebook,
+          website: role === 'Organizer' ? orgWebsite : undefined,
+        });
+        // The profile document carries the identity; construct the immediate
+        // session user for routing, then live subscriptions take over.
+        onSuccess({
+          id: 'session',
+          role,
+          email: email.trim().toLowerCase(),
+          fullName: fullName.trim(),
+          phone: phone.trim(),
+          businessName: role === 'Organizer' ? (businessName || fullName).trim() : undefined,
+          businessAddress: role === 'Organizer' ? (businessAddress || 'Abuja, Nigeria').trim() : undefined,
+        });
+        onClose();
       }
-    } else {
-      // Register
-      if (!fullName || !email || !phone || !password) {
-        setError('Please fill out all required fields.');
-        return;
-      }
-
-      // Check if email already registered
-      const existing = users.find((u) => u.email.toLowerCase() === email.toLowerCase() && u.role === role);
-      if (existing) {
-        setError('An account with this email already exists.');
-        return;
-      }
-
-      const newUser: UserType = {
-        id: `user-${Date.now()}`,
-        role,
-        email,
-        fullName,
-        phone,
-        password,
-        ...(role === 'Organizer' ? {
-          businessName: businessName || fullName,
-          brandLogo: brandLogo || 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=200',
-          businessAddress: businessAddress || 'Abuja, Nigeria',
-          instagram: orgInstagram,
-          facebook: orgFacebook,
-          website: orgWebsite,
-        } : {
-          instagram: buyerInstagram,
-          facebook: buyerFacebook,
-        })
-      };
-
-      users.push(newUser);
-      localStorage.setItem('abuja_events_users', JSON.stringify(users));
-      onSuccess(newUser);
-      onClose();
+    } catch (err) {
+      setError((err as Error).message || 'Something went wrong. Please try again.');
+    } finally {
+      setIsBusy(false);
     }
-  };
-
-  const autofillPreseeded = (emailAddr: string, pass: string, userRole: 'Buyer' | 'Organizer' | 'Admin') => {
-    setRole(userRole === 'Admin' ? 'Organizer' : userRole); // Admins are custom handled
-    setEmail(emailAddr);
-    setPassword(pass);
-    setIsLogin(true);
   };
 
   return (
@@ -149,38 +128,6 @@ export default function AuthModal({
 
         {/* Scrollable Container */}
         <div className="overflow-y-auto p-6 flex-1">
-          {/* Quick Preseeded Logins */}
-          <div className="mb-6 bg-amber-50 border border-amber-100 rounded-2xl p-4 text-xs text-amber-800">
-            <span className="font-bold block mb-1">💡 Quick Demo Logins:</span>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
-              <button
-                type="button"
-                onClick={() => autofillPreseeded('admin@abujaevents.com', 'admin123', 'Admin')}
-                className="bg-white/80 hover:bg-white text-left p-2 rounded-lg border border-amber-200 transition-colors"
-              >
-                <strong className="block text-amber-900">Admin Account</strong>
-                admin@abujaevents.com
-              </button>
-              <button
-                type="button"
-                onClick={() => autofillPreseeded('events@capitalcreatives.com', 'organizer123', 'Organizer')}
-                className="bg-white/80 hover:bg-white text-left p-2 rounded-lg border border-amber-200 transition-colors"
-              >
-                <strong className="block text-amber-900">Organizer (Chidi)</strong>
-                events@capitalcreatives.com
-              </button>
-              <button
-                type="button"
-                onClick={() => autofillPreseeded('buyer@gmail.com', 'buyer123', 'Buyer')}
-                className="bg-white/80 hover:bg-white text-left p-2 rounded-lg border border-amber-200 transition-colors"
-              >
-                <strong className="block text-amber-900">Ticket Buyer (Tunde)</strong>
-                buyer@gmail.com
-              </button>
-            </div>
-            <span className="block mt-2 text-[10px] text-amber-600">Password for above: <strong>admin123</strong>, <strong>organizer123</strong>, or <strong>buyer123</strong></span>
-          </div>
-
           {/* Role selector */}
           <div className="flex bg-gray-100 p-1.5 rounded-2xl mb-6">
             <button
@@ -432,10 +379,11 @@ export default function AuthModal({
 
             <button
               type="submit"
-              className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-3.5 px-4 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 text-sm mt-6 cursor-pointer"
+              disabled={isBusy}
+              className="w-full bg-amber-600 hover:bg-amber-700 disabled:opacity-60 text-white font-semibold py-3.5 px-4 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 text-sm mt-6 cursor-pointer"
             >
-              {isLogin ? 'Login Securely' : 'Complete Registration'}
-              <ArrowRight size={16} />
+              {isBusy ? 'Please wait…' : isLogin ? 'Login Securely' : 'Complete Registration'}
+              {!isBusy && <ArrowRight size={16} />}
             </button>
           </form>
 

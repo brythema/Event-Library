@@ -14,6 +14,8 @@ export enum EventStatus {
   Archived = 'Archived',
 }
 
+export type Role = 'Buyer' | 'Organizer' | 'Admin';
+
 export interface FAQ {
   question: string;
   answer: string;
@@ -91,7 +93,7 @@ export interface Booking {
 
 export interface Notification {
   id: string;
-  userId: string; // 'admin' or userId
+  userId: string; // 'admin' or a uid
   title: string;
   message: string;
   type: 'info' | 'success' | 'warning';
@@ -100,12 +102,12 @@ export interface Notification {
 }
 
 export interface User {
-  id: string;
-  role: 'Buyer' | 'Organizer' | 'Admin';
+  id: string; // Firebase uid
+  role: Role;
   email: string;
   fullName: string;
   phone: string;
-  password?: string;
+  savedEventIds?: string[]; // bookmarks, lives on the profile document
   // Organizer specific
   businessName?: string;
   brandLogo?: string;
@@ -115,9 +117,9 @@ export interface User {
   website?: string;
 }
 
-export interface AppState {
-  users: User[];
+export interface AppData {
   events: AbujaEvent[];
+  users: User[];
   ticketPlans: TicketPlan[];
   bookings: Booking[];
   notifications: Notification[];

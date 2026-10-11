@@ -6,3 +6,10 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# secrets
+service-account*.json
+*.tmp
+
+.vercel
+.atlas/

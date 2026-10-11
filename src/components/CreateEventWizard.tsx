@@ -10,7 +10,8 @@ import {
 } from 'lucide-react';
 import { AbujaEvent, EventStatus, FAQ, User } from '../types';
 import { ABUJA_AREAS, EVENT_CATEGORIES } from '../initialData';
-import { AREA_COORDINATES } from '../utils';
+import { AREA_COORDINATES, localDateString } from '../utils';
+import ImageUploadField from './ImageUploadField';
 
 interface CreateEventWizardProps {
   organizer: User;
@@ -23,10 +24,10 @@ export default function CreateEventWizard({ organizer, onSave, onCancel }: Creat
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Form State
-  // Section 1: Visual Identity
-  const [flyerUrl, setFlyerUrl] = useState('https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=800');
-  const [organizerLogo, setOrganizerLogo] = useState(organizer.brandLogo || 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=200');
-  const [backgroundBanner, setBackgroundBanner] = useState('https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&q=80&w=1200');
+  // Section 1: Visual Identity (uploaded to the blob store or pasted URLs)
+  const [flyerUrl, setFlyerUrl] = useState('');
+  const [organizerLogo, setOrganizerLogo] = useState(organizer.brandLogo || '');
+  const [backgroundBanner, setBackgroundBanner] = useState('');
 
   // Section 2: Event Info
   const [title, setTitle] = useState('');
@@ -36,8 +37,12 @@ export default function CreateEventWizard({ organizer, onSave, onCancel }: Creat
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
 
-  // Section 3: Schedule
-  const [date, setDate] = useState('2026-07-10'); // Sane default
+  // Section 3: Schedule (defaults two weeks out on the real clock)
+  const [date, setDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 14);
+    return localDateString(d);
+  });
   const [openingTime, setOpeningTime] = useState('18:00');
   const [closingTime, setClosingTime] = useState('23:00');
   const [timezone, setTimezone] = useState('WAT (UTC+1)');
@@ -299,50 +304,32 @@ export default function CreateEventWizard({ organizer, onSave, onCancel }: Creat
           {/* SECTION 1: VISUAL IDENTITY */}
           {currentStep === 1 && (
             <div className="space-y-6">
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
-                  Event Flyer Image URL
-                </label>
-                <input
-                  type="url"
-                  value={flyerUrl}
-                  onChange={(e) => setFlyerUrl(e.target.value)}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white rounded-xl px-4 py-3 text-sm outline-hidden text-gray-900"
-                />
-                <p className="text-[10px] text-gray-400 mt-1.5">
-                  High quality event flyer aspect ratios work best. Prefer 4:3 or square images.
-                </p>
-              </div>
+              <ImageUploadField
+                label="Event Flyer Image"
+                value={flyerUrl}
+                onChange={setFlyerUrl}
+                uid={organizer.id}
+                kind="flyer"
+                hint="High quality event flyer aspect ratios work best. Prefer 4:3 or square images. JPG/PNG/WebP up to 4 MB."
+              />
 
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
-                  Organizer Logo URL
-                </label>
-                <input
-                  type="url"
-                  value={organizerLogo}
-                  onChange={(e) => setOrganizerLogo(e.target.value)}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white rounded-xl px-4 py-3 text-sm outline-hidden text-gray-900"
-                />
-              </div>
+              <ImageUploadField
+                label="Organizer Logo"
+                value={organizerLogo}
+                onChange={setOrganizerLogo}
+                uid={organizer.id}
+                kind="logo"
+                hint="Square logo shown beside your brand on event pages."
+              />
 
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
-                  Event Landing Banner URL
-                </label>
-                <input
-                  type="url"
-                  value={backgroundBanner}
-                  onChange={(e) => setBackgroundBanner(e.target.value)}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white rounded-xl px-4 py-3 text-sm outline-hidden text-gray-900"
-                />
-                <p className="text-[10px] text-gray-400 mt-1.5">
-                  Wide landscape banner displayed at the top of your custom event page.
-                </p>
-              </div>
+              <ImageUploadField
+                label="Event Landing Banner"
+                value={backgroundBanner}
+                onChange={setBackgroundBanner}
+                uid={organizer.id}
+                kind="banner"
+                hint="Wide landscape banner displayed at the top of your custom event page."
+              />
 
               {/* Visual preview */}
               <div className="border border-gray-100 rounded-2xl p-4 bg-gray-50/50">
@@ -678,26 +665,31 @@ export default function CreateEventWizard({ organizer, onSave, onCancel }: Creat
           {currentStep === 6 && (
             <div className="space-y-4">
               <p className="text-xs text-gray-500 leading-relaxed mb-2">
-                Provide image URLs of past editions, the venue, or promo posters to display in the event landing gallery section.
+                Upload images of past editions, the venue, or promo posters to display in the event landing gallery section.
               </p>
 
               {galleryInputs.map((val, idx) => (
-                <div key={idx} className="flex gap-2 items-center">
-                  <input
-                    type="url"
-                    value={val}
-                    onChange={(e) => handleGalleryChange(idx, e.target.value)}
-                    placeholder="https://images.unsplash.com/your-photo-url"
-                    className="flex-1 bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white rounded-xl px-4 py-3 text-sm outline-hidden text-gray-900"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveGalleryField(idx)}
-                    className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                    title="Remove Image"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                <div key={idx} className="flex flex-col gap-2 border-b border-gray-50 pb-4">
+                  <div className="flex items-start">
+                    <div className="flex-1">
+                      <ImageUploadField
+                        label={`Gallery Image ${idx + 1}`}
+                        value={val}
+                        onChange={(url) => handleGalleryChange(idx, url)}
+                        uid={organizer.id}
+                        kind="gallery"
+                        compact
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveGalleryField(idx)}
+                      className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                      title="Remove Image"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
               ))}
 
@@ -706,7 +698,7 @@ export default function CreateEventWizard({ organizer, onSave, onCancel }: Creat
                 onClick={handleAddGalleryField}
                 className="inline-flex items-center gap-2 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100/80 border border-amber-100 rounded-xl px-4 py-3 transition-all"
               >
-                <Plus size={14} /> Add Gallery Image Link
+                <Plus size={14} /> Add Gallery Image
               </button>
             </div>
           )}

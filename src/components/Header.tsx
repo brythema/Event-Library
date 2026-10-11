@@ -30,7 +30,7 @@ export default function Header({
   const handleDashboardRedirect = () => {
     if (!currentUser) return;
     setShowDropdown(false);
-    if (currentUser.id === 'admin') {
+    if (currentUser.role === 'Admin') {
       onNavigate('admin-dashboard');
     } else if (currentUser.role === 'Organizer') {
       onNavigate('organizer-dashboard');
@@ -41,7 +41,7 @@ export default function Header({
 
   const getDashboardLabel = () => {
     if (!currentUser) return '';
-    if (currentUser.id === 'admin') return 'Admin Panel';
+    if (currentUser.role === 'Admin') return 'Admin Panel';
     if (currentUser.role === 'Organizer') return 'Organizer Workspace';
     return 'My Tickets Portal';
   };

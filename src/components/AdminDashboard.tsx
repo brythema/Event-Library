@@ -9,7 +9,7 @@ import {
   DollarSign, Clock, Check, X, Star, Settings, FileText, PlusCircle, Bookmark, Eye 
 } from 'lucide-react';
 import { AbujaEvent, EventStatus, TicketPlan, User, Booking, Notification } from '../types';
-import { formatCurrency } from '../utils';
+import { formatCurrency, FALLBACK_FLYER } from '../utils';
 
 interface AdminDashboardProps {
   events: AbujaEvent[];
@@ -262,7 +262,7 @@ export default function AdminDashboard({
                 className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 border rounded-2xl hover:bg-gray-50/50 transition-all"
               >
                 <div className="flex gap-4 items-center flex-1 min-w-0">
-                  <img src={e.flyerUrl} alt={e.title} className="w-12 h-12 rounded-xl object-cover border bg-gray-50" referrerPolicy="no-referrer" />
+                  <img src={e.flyerUrl || FALLBACK_FLYER} alt={e.title} className="w-12 h-12 rounded-xl object-cover border bg-gray-50" referrerPolicy="no-referrer" />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <strong className="text-xs text-gray-900 font-bold font-sans block truncate max-w-xs">{e.title}</strong>

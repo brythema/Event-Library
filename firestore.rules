@@ -1,0 +1,210 @@
+rules_version = '2';
+
+// Abuja Events — production Firestore rules.
+// Model: profiles carry the role; admins carry a custom claim. Events,
+// plans and bookings follow the state machine in docs/PRODUCTION-SCOPE.md.
+// Bookings are NEVER created from the browser — only POST /api/book, which
+// runs with the service account and bypasses these rules by design.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return signedIn() && request.auth.token.admin == true;
+    }
+
+    function isOrganizer() {
+      return signedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Organizer';
+    }
+
+    function isOwnerOf(eventId) {
+      return signedIn() && resource.data.organizerId == request.auth.uid;
+    }
+
+    function validStatus(value) {
+      return value in ['Draft', 'Published', 'Pending Review', 'Approved', 'Ticketing Active', 'Live', 'Ended', 'Archived'];
+    }
+
+    /* ------------------------------- users ------------------------------- */
+
+    match /users/{uid} {
+      allow get, list: if isSelf(uid) || isAdmin();
+
+      // Public registration creates Buyer or Organizer profiles only.
+      // The admin account is provisioned with the Admin SDK and can never
+      // be created from the browser.
+      allow create: if isSelf(uid)
+        && request.resource.data.role in ['Buyer', 'Organizer']
+        && request.resource.data.keys().hasOnly(
+             request.resource.data.role == 'Buyer'
+               ? ['role', 'email', 'fullName', 'phone', 'createdAt', 'savedEventIds']
+               : ['role', 'email', 'fullName', 'phone', 'createdAt', 'savedEventIds',
+                  'businessName', 'businessAddress', 'instagram', 'facebook', 'website', 'brandLogo'])
+        && request.resource.data.email is string
+        && request.resource.data.fullName is string;
+
+      // A user can edit profile details, never their role or email.
+      allow update: if (
+          isSelf(uid)
+          && resource.data.role == request.resource.data.role
+          && resource.data.email == request.resource.data.email
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'fullName', 'phone', 'savedEventIds', 'updatedAt',
+            'businessName', 'businessAddress', 'brandLogo', 'instagram', 'facebook', 'website'
+          ])
+        )
+        || (
+          isAdmin()
+          && resource.data.role == request.resource.data.role
+        );
+
+      allow delete: if isAdmin();
+    }
+
+    /* ------------------------------- events ------------------------------ */
+
+    match /events/{eventId} {
+      // Public listing (rules evaluate per document, so the client's
+      // status-filtered queries satisfy these); organizers see their own.
+      allow get, list: if isAdmin()
+        || isOwnerOf(eventId)
+        || resource.data.status in ['Approved', 'Ticketing Active', 'Live', 'Ended'];
+
+      // Organizer creates own events as Draft or Pending Review (submission).
+      allow create: if signedIn()
+        && request.resource.data.organizerId == request.auth.uid
+        && request.resource.data.status in ['Draft', 'Pending Review']
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.keys().hasOnly([
+          'organizerId', 'title', 'subtitle', 'description', 'category', 'tags',
+          'flyerUrl', 'organizerLogo', 'backgroundBanner',
+          'date', 'openingTime', 'closingTime', 'timezone',
+          'venueName', 'streetAddress', 'area', 'landmark', 'googleMapLink',
+          'organizerName', 'phone', 'email', 'website', 'instagram', 'facebook', 'whatsapp',
+          'gallery', 'faqs', 'ageRestriction', 'dressCode', 'parking', 'refundPolicy',
+          'status', 'isFeatured', 'interestedCount', 'createdAt', 'latitude', 'longitude'
+        ])
+        && request.resource.data.isFeatured == false
+        && request.resource.data.interestedCount == 0;
+
+      // Organizer: content edits on own events; may resubmit a declined
+      // (Draft) event but may never approve themselves past Published.
+      // Admin: full control except reassigning the organizer.
+      allow update: if (
+          isAdmin()
+          && resource.data.organizerId == request.resource.data.organizerId
+        )
+        || (
+          isOwnerOf(eventId)
+          && (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'title', 'subtitle', 'description', 'category', 'tags',
+              'flyerUrl', 'organizerLogo', 'backgroundBanner',
+              'date', 'openingTime', 'closingTime', 'timezone',
+              'venueName', 'streetAddress', 'area', 'landmark', 'googleMapLink',
+              'organizerName', 'phone', 'email', 'website', 'instagram', 'facebook', 'whatsapp',
+              'gallery', 'faqs', 'ageRestriction', 'dressCode', 'parking', 'refundPolicy',
+              'updatedAt'
+            ])
+            || (
+              // Resubmission of a declined (Draft) event and bookmark bumps.
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+              && resource.data.status == 'Draft'
+              && request.resource.data.status == 'Pending Review'
+            )
+            || (
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['interestedCount'])
+              && request.resource.data.interestedCount is int
+            )
+          )
+          && validStatus(request.resource.data.status)
+        );
+
+      allow delete: if isAdmin() || isOwnerOf(eventId);
+    }
+
+    /* ---------------------------- ticket plans --------------------------- */
+
+    match /ticketPlans/{planId} {
+      // Plans are public (buyers pick classes before signing in).
+      allow get, list: if true;
+
+      // Only the admin claim manages plans. Buyers and organizers can NEVER
+      // write availability — that is what makes overselling impossible from
+      // the client. POST /api/book uses the service account instead.
+      allow create: if isAdmin()
+        && request.resource.data.eventId is string
+        && request.resource.data.name is string
+        && request.resource.data.price is int && request.resource.data.price >= 0
+        && request.resource.data.availableQuantity is int && request.resource.data.availableQuantity >= 0
+        && request.resource.data.maxPurchaseLimit is int && request.resource.data.maxPurchaseLimit >= 1
+        && request.resource.data.keys().hasOnly([
+          'eventId', 'name', 'price', 'availableQuantity', 'maxPurchaseLimit',
+          'description', 'color', 'displayOrder'
+        ]);
+
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'name', 'price', 'availableQuantity', 'maxPurchaseLimit', 'description', 'color', 'displayOrder'
+        ]);
+
+      allow delete: if isAdmin();
+    }
+
+    /* ------------------------------ bookings ----------------------------- */
+
+    match /bookings/{bookingId} {
+      allow get, list: if isAdmin() || (signedIn() && resource.data.buyerId == request.auth.uid);
+
+      // Client-side creation is forbidden, always. Bookings are created by
+      // the /api/book transaction only.
+      allow create: if false;
+
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && request.resource.data.status in ['Pending', 'Confirmed'];
+
+      allow delete: if isAdmin();
+    }
+
+    /* ---------------------------- notifications -------------------------- */
+
+    match /notifications/{notificationId} {
+      allow get, list: if signedIn()
+        && (resource.data.userId == request.auth.uid
+            || (resource.data.userId == 'admin' && isAdmin()));
+
+      allow create: if signedIn()
+        && request.resource.data.userId is string
+        && request.resource.data.userId.size() > 0
+        && request.resource.data.title is string
+        && request.resource.data.message is string
+        && request.resource.data.type in ['info', 'success', 'warning']
+        && request.resource.data.isRead == false
+        && request.resource.data.keys().hasOnly(['userId', 'title', 'message', 'type', 'createdAt', 'isRead']);
+
+      // Recipients mark their own notifications read; nothing else changes.
+      allow update: if signedIn()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead'])
+        && request.resource.data.isRead == true;
+
+      allow delete: if isAdmin();
+    }
+
+    /* --------------------------- default deny ---------------------------- */
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

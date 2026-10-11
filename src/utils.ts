@@ -3,117 +3,77 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { AbujaEvent, EventStatus, TicketPlan, Booking, Notification, User } from './types';
-import { INITIAL_EVENTS, INITIAL_USERS, INITIAL_TICKET_PLANS, INITIAL_BOOKINGS, INITIAL_NOTIFICATIONS } from './initialData';
+import { AbujaEvent, EventStatus, User } from './types';
 
-// Fixed simulated current date to ensure seeded data works beautifully
-export const SIMULATED_TODAY = '2026-07-08';
+/* Statuses visible to the general public in listings. Drafts, submissions
+   awaiting review, and archived events stay private to owner and admin. */
+export const PUBLIC_STATUSES: EventStatus[] = [
+  EventStatus.Approved,
+  EventStatus.TicketingActive,
+  EventStatus.Live,
+  EventStatus.Ended,
+];
 
-export function getTodayDate(): Date {
-  return new Date(SIMULATED_TODAY);
-}
+/* The WhatsApp number buyers are redirected to for payment confirmation.
+   Configurable until the owner locks in the business number. */
+export const ADMIN_WHATSAPP = '+2348012345678';
 
-// Helpers for date checking
+/* Neutral placeholder shown wherever an event has no flyer yet. */
+export const FALLBACK_FLYER = 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=800';
+
+/* Date helpers on the real clock (no simulated "today" in production). */
 export function isToday(dateStr: string): boolean {
-  return dateStr === SIMULATED_TODAY;
+  return dateStr === localDateString(new Date());
 }
 
 export function isTomorrow(dateStr: string): boolean {
-  const date = new Date(dateStr);
-  const today = new Date(SIMULATED_TODAY);
-  const diffTime = date.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays === 1;
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return dateStr === localDateString(tomorrow);
 }
 
 export function isThisWeekend(dateStr: string): boolean {
-  const date = new Date(dateStr);
-  const day = date.getDay(); // 0 is Sunday, 5 is Friday, 6 is Saturday
-  
-  // Let's check if the date is within Friday, Saturday, or Sunday of the current simulated week.
-  // Today is 2026-07-08 (Wednesday). The upcoming weekend is July 10 (Fri), July 11 (Sat), July 12 (Sun).
-  const today = new Date(SIMULATED_TODAY);
-  const diffTime = date.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  // DiffDays to Friday is 2, Saturday is 3, Sunday is 4
-  return diffDays >= 2 && diffDays <= 4;
+  const date = new Date(`${dateStr}T00:00:00`);
+  const day = date.getDay(); // 5 Friday, 6 Saturday, 0 Sunday
+  if (day !== 5 && day !== 6 && day !== 0) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((date.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+  // The upcoming weekend: Friday through Sunday within the next week, plus today if it IS the weekend.
+  return diffDays >= 0 && diffDays <= 6;
 }
 
 export function isUpcoming(dateStr: string): boolean {
-  return dateStr > SIMULATED_TODAY;
+  return dateStr >= localDateString(new Date());
 }
 
-/**
- * Automatically update event statuses based on the simulated current date.
- * Lifecycle: Draft -> Published -> Pending Review -> Approved -> Ticketing Active -> Live (on event day) -> Ended -> Archived (24 hours later)
- */
-export function updateEventLifecycles(events: AbujaEvent[]): AbujaEvent[] {
-  return events.map((event) => {
-    // We only auto-advance if the event was already Approved or TicketingActive
-    if (
-      event.status === EventStatus.Approved ||
-      event.status === EventStatus.TicketingActive ||
-      event.status === EventStatus.Live ||
-      event.status === EventStatus.Ended
-    ) {
-      if (event.date === SIMULATED_TODAY) {
-        return { ...event, status: EventStatus.Live };
-      }
-      
-      const eventTime = new Date(event.date).getTime();
-      const todayTime = new Date(SIMULATED_TODAY).getTime();
-      const oneDayMs = 24 * 60 * 60 * 1000;
-      const diffMs = todayTime - eventTime;
-      
-      if (diffMs >= oneDayMs) {
-        // More than 24 hours after the event date
-        return { ...event, status: EventStatus.Archived };
-      } else if (diffMs > 0) {
-        // Less than 24 hours past the event, but date is prior to today
-        return { ...event, status: EventStatus.Ended };
-      }
-    }
-    return event;
-  });
+/* Local-time YYYY-MM-DD (toISOString would shift by timezone). */
+export function localDateString(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
-// Local Storage helpers
-export function loadState() {
-  const eventsRaw = localStorage.getItem('abuja_events_events');
-  const usersRaw = localStorage.getItem('abuja_events_users');
-  const plansRaw = localStorage.getItem('abuja_events_plans');
-  const bookingsRaw = localStorage.getItem('abuja_events_bookings');
-  const notificationsRaw = localStorage.getItem('abuja_events_notifications');
-  const currentUserRaw = localStorage.getItem('abuja_events_current_user');
-
-  let events: AbujaEvent[] = eventsRaw ? JSON.parse(eventsRaw) : INITIAL_EVENTS;
-  const users: User[] = usersRaw ? JSON.parse(usersRaw) : INITIAL_USERS;
-  const ticketPlans: TicketPlan[] = plansRaw ? JSON.parse(plansRaw) : INITIAL_TICKET_PLANS;
-  const bookings: Booking[] = bookingsRaw ? JSON.parse(bookingsRaw) : INITIAL_BOOKINGS;
-  const notifications: Notification[] = notificationsRaw ? JSON.parse(notificationsRaw) : INITIAL_NOTIFICATIONS;
-  const currentUser: User | null = currentUserRaw ? JSON.parse(currentUserRaw) : null;
-
-  // Run lifecycle updates
-  events = updateEventLifecycles(events);
-
-  return { events, users, ticketPlans, bookings, notifications, currentUser };
-}
-
-export function saveState(state: {
-  events: AbujaEvent[];
-  users: User[];
-  ticketPlans: TicketPlan[];
-  bookings: Booking[];
-  notifications: Notification[];
-  currentUser: User | null;
-}) {
-  localStorage.setItem('abuja_events_events', JSON.stringify(state.events));
-  localStorage.setItem('abuja_events_users', JSON.stringify(state.users));
-  localStorage.setItem('abuja_events_plans', JSON.stringify(state.ticketPlans));
-  localStorage.setItem('abuja_events_bookings', JSON.stringify(state.bookings));
-  localStorage.setItem('abuja_events_notifications', JSON.stringify(state.notifications));
-  localStorage.setItem('abuja_events_current_user', JSON.stringify(state.currentUser));
+/* Display-level lifecycle: the stored status stays admin-controlled; the UI
+   derives Live/Ended from the real date so listings never need a cron. */
+export function effectiveStatus(event: AbujaEvent, now: Date = new Date()): EventStatus {
+  const status = event.status;
+  if (
+    status !== EventStatus.Approved &&
+    status !== EventStatus.TicketingActive &&
+    status !== EventStatus.Live &&
+    status !== EventStatus.Ended
+  ) {
+    return status;
+  }
+  const today = localDateString(now);
+  if (event.date === today) return EventStatus.Live;
+  if (event.date < today) {
+    const diffMs = now.getTime() - new Date(`${event.date}T23:59:59`).getTime();
+    return diffMs >= 24 * 60 * 60 * 1000 ? EventStatus.Archived : EventStatus.Ended;
+  }
+  return status === EventStatus.Ended ? EventStatus.Ended : status;
 }
 
 // Countdown timer calculator
@@ -126,25 +86,22 @@ export interface Countdown {
 }
 
 export function calculateCountdown(eventDate: string, openingTime: string): Countdown {
-  const targetStr = `${eventDate}T${openingTime || '00:00'}:00`;
-  const targetDate = new Date(targetStr);
-  const now = new Date(`${SIMULATED_TODAY}T15:54:44`); // Anchoring now near local simulated time
-  
-  const difference = targetDate.getTime() - now.getTime();
-  
+  const targetDate = new Date(`${eventDate}T${openingTime || '00:00'}:00`);
+  const difference = targetDate.getTime() - Date.now();
+
   if (difference <= 0) {
     return { days: 0, hours: 0, minutes: 0, seconds: 0, isOver: true };
   }
-  
+
   const days = Math.floor(difference / (1000 * 60 * 60 * 24));
   const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
   const minutes = Math.floor((difference / 1000 / 60) % 60);
   const seconds = Math.floor((difference / 1000) % 60);
-  
+
   return { days, hours, minutes, seconds, isOver: false };
 }
 
-// WhatsApp pre-filled message generator
+// WhatsApp pre-filled payment confirmation message
 export function generateWhatsAppLink(
   whatsappNumber: string,
   eventName: string,
@@ -189,4 +146,9 @@ export function getDistanceInKm(lat1: number, lon1: number, lat2: number, lon2: 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const d = R * c; // Distance in km
   return d;
+}
+
+/* The organizer-visible display name for a user, falling back gracefully. */
+export function organizerDisplayName(user: User | null): string {
+  return user?.businessName || user?.fullName || 'Organizer';
 }

@@ -8,8 +8,8 @@ import {
   Calendar, MapPin, Clock, Heart, Share2, Ticket, Check, ChevronDown, 
   ChevronUp, Instagram, Facebook, Globe, Phone, ExternalLink, ArrowRight, MessageCircle 
 } from 'lucide-react';
-import { AbujaEvent, TicketPlan, User, Booking, EventStatus } from '../types';
-import { formatCurrency, calculateCountdown, Countdown, generateWhatsAppLink } from '../utils';
+import { AbujaEvent, TicketPlan, User, EventStatus } from '../types';
+import { formatCurrency, calculateCountdown, Countdown, generateWhatsAppLink, ADMIN_WHATSAPP } from '../utils';
 
 interface EventLandingPageProps {
   event: AbujaEvent;
@@ -21,7 +21,8 @@ interface EventLandingPageProps {
   onBack: () => void;
   onSelectEvent: (eventId: string) => void;
   onLoginTrigger: () => void;
-  onAddBooking: (booking: Booking) => void;
+  /* Server-side booking (POST /api/book); returns the created booking. */
+  onBook: (plan: TicketPlan, quantity: number) => Promise<{ ok: boolean; error?: string; booking?: import('../types').Booking }>;
 }
 
 export default function EventLandingPage({
@@ -34,7 +35,7 @@ export default function EventLandingPage({
   onBack,
   onSelectEvent,
   onLoginTrigger,
-  onAddBooking,
+  onBook,
 }: EventLandingPageProps) {
   const [copied, setCopied] = useState(false);
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
@@ -45,14 +46,7 @@ export default function EventLandingPage({
   const [selectedPlan, setSelectedPlan] = useState<TicketPlan | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [step, setStep] = useState<1 | 2>(1); // 1: Select tickets & summary, 2: Transfer instruction & confirmation
-
-  // Registration states if user is unregistered during purchase
-  const [showAuthForm, setShowAuthForm] = useState(false);
-  const [regName, setRegName] = useState('');
-  const [regEmail, setRegEmail] = useState('');
-  const [regPhone, setRegPhone] = useState('');
-  const [regPassword, setRegPassword] = useState('');
-  const [regError, setRegError] = useState('');
+  const [isBookingBusy, setIsBookingBusy] = useState(false);
 
   // Update countdown every second
   useEffect(() => {
@@ -78,7 +72,7 @@ export default function EventLandingPage({
 
   const handleStartBooking = () => {
     if (!currentUser) {
-      setShowAuthForm(true);
+      onLoginTrigger();
     } else {
       setSelectedPlan(ticketPlans[0] || null);
       setQuantity(1);
@@ -87,93 +81,37 @@ export default function EventLandingPage({
     }
   };
 
-  const handleRegisterBuyer = (e: React.FormEvent) => {
-    e.preventDefault();
-    setRegError('');
-    if (!regName || !regEmail || !regPhone || !regPassword) {
-      setRegError('Please fill in all required registration fields');
-      return;
-    }
-
-    // Register user in local storage
-    const usersRaw = localStorage.getItem('abuja_events_users');
-    let users: User[] = usersRaw ? JSON.parse(usersRaw) : [];
-    
-    if (users.some(u => u.email.toLowerCase() === regEmail.toLowerCase() && u.role === 'Buyer')) {
-      setRegError('An account with this email already exists.');
-      return;
-    }
-
-    const newUser: User = {
-      id: `user-${Date.now()}`,
-      role: 'Buyer',
-      email: regEmail,
-      fullName: regName,
-      phone: regPhone,
-      password: regPassword,
-    };
-
-    users.push(newUser);
-    localStorage.setItem('abuja_events_users', JSON.stringify(users));
-    localStorage.setItem('abuja_events_current_user', JSON.stringify(newUser));
-    
-    // Trigger login updates
-    window.dispatchEvent(new Event('storage'));
-    
-    // Continue with booking
-    setShowAuthForm(false);
-    setSelectedPlan(ticketPlans[0] || null);
-    setQuantity(1);
-    setStep(1);
-    setIsBookingOpen(true);
-  };
-
   const handleProceedToPayment = () => {
     if (!selectedPlan) return;
     setStep(2);
   };
 
-  const handleConfirmPayment = () => {
+  /* Booking = server-side transaction; success deep-links to WhatsApp for
+     the bank-transfer confirmation message. */
+  const handleConfirmPayment = async () => {
     if (!selectedPlan || !currentUser) return;
 
-    const ref = `AE-${event.title.substring(0, 2).toUpperCase()}-${Math.floor(10000 + Math.random() * 90000)}`;
-    const total = selectedPlan.price * quantity;
+    setIsBookingBusy(true);
+    try {
+      const result = await onBook(selectedPlan, quantity);
+      if (!result.ok || !result.booking) return;
 
-    const newBooking: Booking = {
-      id: `booking-${Date.now()}`,
-      eventId: event.id,
-      buyerId: currentUser.id,
-      ticketPlanId: selectedPlan.id,
-      quantity,
-      totalAmount: total,
-      status: 'Pending',
-      bookingReference: ref,
-      createdAt: new Date().toISOString(),
-      customerDetails: {
-        fullName: currentUser.fullName,
-        email: currentUser.email,
-        phone: currentUser.phone,
-      },
-    };
+      const link = generateWhatsAppLink(
+        ADMIN_WHATSAPP,
+        event.title,
+        selectedPlan.name,
+        quantity,
+        result.booking.totalAmount,
+        result.booking.customerDetails.fullName,
+        result.booking.customerDetails.phone,
+        result.booking.customerDetails.email
+      );
 
-    onAddBooking(newBooking);
-
-    // Deep link to Whatsapp
-    // Admin's WhatsApp number is preconfigured. We will format the WhatsApp url
-    const adminWhatsApp = '+2348012345678';
-    const link = generateWhatsAppLink(
-      adminWhatsApp,
-      event.title,
-      selectedPlan.name,
-      quantity,
-      total,
-      currentUser.fullName,
-      currentUser.phone,
-      currentUser.email
-    );
-
-    window.open(link, '_blank');
-    setIsBookingOpen(false);
+      window.open(link, '_blank');
+      setIsBookingOpen(false);
+    } finally {
+      setIsBookingBusy(false);
+    }
   };
 
   // Beautiful status bar
@@ -687,93 +625,6 @@ export default function EventLandingPage({
         </div>
       )}
 
-      {/* TICKET REGISTRATION FORM POPOVER (IF USER UNREGISTERED) */}
-      {showAuthForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-md">
-          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 border border-gray-100">
-            <div className="flex justify-between items-center pb-4 border-b border-gray-100 mb-4">
-              <div>
-                <h4 className="font-sans font-bold text-lg text-gray-900">Account Required</h4>
-                <p className="text-[10px] text-gray-400 mt-0.5">Please register once to purchase and track your bookings</p>
-              </div>
-              <button onClick={() => setShowAuthForm(false)} className="text-gray-400 hover:text-gray-600">×</button>
-            </div>
-
-            {regError && (
-              <div className="mb-4 bg-red-50 border border-red-100 text-red-700 text-xs rounded-xl p-3">
-                {regError}
-              </div>
-            )}
-
-            <form onSubmit={handleRegisterBuyer} className="space-y-3">
-              <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Full Name</label>
-                <input
-                  type="text"
-                  required
-                  value={regName}
-                  onChange={(e) => setRegName(e.target.value)}
-                  placeholder="e.g. Tunde Johnson"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-950"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Email Address</label>
-                <input
-                  type="email"
-                  required
-                  value={regEmail}
-                  onChange={(e) => setRegEmail(e.target.value)}
-                  placeholder="name@example.com"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-950"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Phone Number</label>
-                <input
-                  type="tel"
-                  required
-                  value={regPhone}
-                  onChange={(e) => setRegPhone(e.target.value)}
-                  placeholder="e.g. +234 812..."
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-950"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Password</label>
-                <input
-                  type="password"
-                  required
-                  value={regPassword}
-                  onChange={(e) => setRegPassword(e.target.value)}
-                  placeholder="Create password"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-950"
-                />
-              </div>
-
-              <div className="flex justify-between items-center pt-3 text-[11px]">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowAuthForm(false);
-                    onLoginTrigger();
-                  }}
-                  className="text-amber-700 font-bold hover:underline"
-                >
-                  Already have an account? Sign in
-                </button>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-3 px-4 rounded-xl text-xs mt-4 cursor-pointer"
-              >
-                Register & Continue Purchase
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* 12. TICKET BOOKING FLOW DIALOG */}
       {isBookingOpen && selectedPlan && currentUser && (
@@ -911,10 +762,11 @@ export default function EventLandingPage({
                   </button>
                   <button
                     type="button"
+                    disabled={isBookingBusy}
                     onClick={handleConfirmPayment}
-                    className="flex-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-emerald-600/10"
+                    className="flex-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-emerald-600/10"
                   >
-                    <MessageCircle size={14} /> I've Made Payment
+                    {isBookingBusy ? 'Reserving…' : (<><MessageCircle size={14} /> I've Made Payment</>)}
                   </button>
                 </div>
               </div>

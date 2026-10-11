@@ -3,15 +3,24 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
-import { 
-  Search, SlidersHorizontal, MapPin, Tag, Calendar, Heart, Share2, 
-  Clock, Sparkles, Phone, Mail, Instagram, Facebook, Globe, MessageCircle, X 
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Search, SlidersHorizontal, MapPin, Tag, Calendar, Heart, Share2,
+  Clock, Sparkles, Phone, Mail, Instagram, Facebook, Globe, MessageCircle, X
 } from 'lucide-react';
 
 import { AbujaEvent, EventStatus, TicketPlan, User, Booking, Notification } from './types';
 import { ABUJA_AREAS, EVENT_CATEGORIES } from './initialData';
-import { loadState, saveState, isToday, isTomorrow, isThisWeekend, isUpcoming, formatCurrency, getDistanceInKm, AREA_COORDINATES } from './utils';
+import { isToday, isTomorrow, isThisWeekend, isUpcoming, formatCurrency, getDistanceInKm, AREA_COORDINATES } from './utils';
+import { onAuthUser, signOut as signOutUser } from './services/auth';
+import {
+  subscribeEvents, subscribeTicketPlans, subscribeBookings, subscribeNotifications, subscribeUsers,
+  saveEvent as dbSaveEvent, deleteEvent as dbDeleteEvent, setEventStatus, setEventFeatured,
+  addTicketPlan as dbAddTicketPlan, deleteTicketPlan as dbDeleteTicketPlan,
+  confirmBooking as dbConfirmBooking, cancelBooking as dbCancelBooking,
+  updateProfile as dbUpdateProfile, toggleBookmark as dbToggleBookmark,
+} from './services/db';
+import { bookTickets } from './services/bookings';
 
 // Import custom high-fidelity components
 import Header from './components/Header';
@@ -34,6 +43,7 @@ export default function App() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isDataLoading, setIsDataLoading] = useState(true);
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
@@ -52,100 +62,70 @@ export default function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'Buyer' | 'Organizer'>('Buyer');
 
-  // Bookmarks State (Saved events for buyer)
-  const [savedEventIds, setSavedEventIds] = useState<string[]>([]);
+  // Bookmarks State (Saved events for buyer) — lives on the profile document
 
   // Toast feedback state
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
 
-  // Load state on mount
+  // Live subscriptions: identity first, then role-scoped data channels.
   useEffect(() => {
-    const state = loadState();
-    setEvents(state.events);
-    setUsers(state.users);
-    setTicketPlans(state.ticketPlans);
-    setBookings(state.bookings);
-    setNotifications(state.notifications);
-    setCurrentUser(state.currentUser);
-
-    // Load bookmarks (simulate for user or session)
-    const saved = localStorage.getItem('abuja_events_bookmarks');
-    if (saved) {
-      setSavedEventIds(JSON.parse(saved));
-    }
+    const unsub = onAuthUser((user) => setCurrentUser(user));
+    return unsub;
   }, []);
 
-  // Sync / Save state helper
-  const syncState = (
-    nextEvents: AbujaEvent[],
-    nextUsers: User[],
-    nextPlans: TicketPlan[],
-    nextBookings: Booking[],
-    nextNotifications: Notification[],
-    nextCurrentUser: User | null
-  ) => {
-    setEvents(nextEvents);
-    setUsers(nextUsers);
-    setTicketPlans(nextPlans);
-    setBookings(nextBookings);
-    setNotifications(nextNotifications);
-    setCurrentUser(nextCurrentUser);
-
-    saveState({
-      events: nextEvents,
-      users: nextUsers,
-      ticketPlans: nextPlans,
-      bookings: nextBookings,
-      notifications: nextNotifications,
-      currentUser: nextCurrentUser,
-    });
-  };
+  useEffect(() => {
+    const onDataError = (e: Error) => triggerToast(`Data issue: ${e.message}`, 'error');
+    const unsubs: Array<() => void> = [
+      subscribeTicketPlans(setTicketPlans, onDataError),
+      subscribeEvents(currentUser, setEvents, onDataError),
+      subscribeBookings(currentUser, setBookings, onDataError),
+      subscribeNotifications(currentUser, setNotifications, onDataError),
+      subscribeUsers(currentUser, setUsers, onDataError),
+    ];
+    const settle = setTimeout(() => setIsDataLoading(false), 800);
+    return () => { unsubs.forEach((u) => u()); clearTimeout(settle); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id, currentUser?.role]);
 
   const triggerToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
   };
 
+  /* Run one async mutation with toast feedback; errors surface verbatim. */
+  const runMutation = async (action: () => Promise<void>, successMessage: string, opts: { silent?: boolean } = {}) => {
+    try {
+      await action();
+      if (!opts.silent) triggerToast(successMessage);
+    } catch (error) {
+      triggerToast((error as Error).message || 'Something went wrong.', 'error');
+    }
+  };
+
+  // Bookmarks come straight from the live profile document.
+  const savedEventIds = currentUser?.savedEventIds || [];
+
   // Bookmark Toggle
   const handleToggleInterest = (eventId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    
-    let updatedBookmarks = [...savedEventIds];
-    const isBookmarked = updatedBookmarks.includes(eventId);
-
-    if (isBookmarked) {
-      updatedBookmarks = updatedBookmarks.filter(id => id !== eventId);
-      triggerToast('Removed event from interest list', 'info');
-    } else {
-      updatedBookmarks.push(eventId);
-      triggerToast('Marked as Interested! Added to profile portal.', 'success');
+    const isBookmarked = savedEventIds.includes(eventId);
+    if (!currentUser) {
+      setAuthModalTab('Buyer');
+      setIsAuthModalOpen(true);
+      return;
     }
-
-    setSavedEventIds(updatedBookmarks);
-    localStorage.setItem('abuja_events_bookmarks', JSON.stringify(updatedBookmarks));
-
-    // Increment or decrement the event interest count relationally
-    const nextEvents = events.map(ev => {
-      if (ev.id === eventId) {
-        return {
-          ...ev,
-          interestedCount: Math.max(0, ev.interestedCount + (isBookmarked ? -1 : 1))
-        };
-      }
-      return ev;
-    });
-
-    syncState(nextEvents, users, ticketPlans, bookings, notifications, currentUser);
+    runMutation(
+      () => dbToggleBookmark(eventId, isBookmarked),
+      isBookmarked ? 'Removed event from interest list' : 'Marked as Interested! Added to profile portal.',
+      { silent: isBookmarked }
+    );
   };
 
-  // Auth Modal Callback
+  // Auth Modal Callback — the subscription has/will pick up the identity;
+  // this only routes the fresh user to the right dashboard.
   const handleAuthSuccess = (loggedInUser: User) => {
-    setCurrentUser(loggedInUser);
-    localStorage.setItem('abuja_events_current_user', JSON.stringify(loggedInUser));
-    triggerToast(`Logged in successfully as ${loggedInUser.fullName}!`, 'success');
-    
-    // Redirect logic: based on role
-    if (loggedInUser.id === 'admin') {
+    triggerToast(`Logged in successfully as ${loggedInUser.fullName || loggedInUser.email}!`, 'success');
+    if (loggedInUser.role === 'Admin') {
       setView('admin-dashboard');
     } else if (loggedInUser.role === 'Organizer') {
       setView('organizer-dashboard');
@@ -155,225 +135,132 @@ export default function App() {
   };
 
   // Logout Call
-  const handleLogout = () => {
-    setCurrentUser(null);
-    localStorage.removeItem('abuja_events_current_user');
+  const handleLogout = async () => {
+    await signOutUser();
     triggerToast('Logged out successfully', 'info');
     setView('home');
     setSelectedEventId(null);
   };
 
-  // Event deletion (Organizer dashboard action)
+  // Event deletion (Organizer dashboard action). Events with live ticket
+  // plans must be cleared by the admin first — plans are admin-owned.
   const handleDeleteEvent = (eventId: string) => {
-    const nextEvents = events.filter(e => e.id !== eventId);
-    triggerToast('Event deleted successfully');
-    syncState(nextEvents, users, ticketPlans, bookings, notifications, currentUser);
+    if (ticketPlans.some(p => p.eventId === eventId)) {
+      triggerToast('This event has ticket classes. Ask the admin to remove them first.', 'error');
+      return;
+    }
+    runMutation(() => dbDeleteEvent(eventId), 'Event deleted successfully');
   };
 
   // Add new event from Wizard
   const handleAddNewEvent = (newEvent: AbujaEvent) => {
-    const nextEvents = [newEvent, ...events];
-    
-    // Dispatch system notification
-    const newNotif: Notification = {
-      id: `notif-${Date.now()}`,
-      userId: 'admin', // for Admin's notifications
-      title: 'New Event Submission',
-      message: `Organizer "${newEvent.organizerName}" created event "${newEvent.title}" pending review.`,
-      type: 'warning',
-      createdAt: new Date().toISOString(),
-      isRead: false,
-    };
-
-    const organizerNotif: Notification = {
-      id: `notif-org-${Date.now()}`,
-      userId: newEvent.organizerId,
-      title: newEvent.status === EventStatus.Draft ? 'Draft Saved' : 'Review Submitted',
-      message: newEvent.status === EventStatus.Draft 
-        ? `Your event "${newEvent.title}" is saved as draft.` 
-        : `Your event "${newEvent.title}" is pending admin verification.`,
-      type: 'success',
-      createdAt: new Date().toISOString(),
-      isRead: false,
-    };
-
-    triggerToast(newEvent.status === EventStatus.Draft ? 'Draft saved!' : 'Event submitted for review!');
-    setView('organizer-dashboard');
-
-    syncState(
-      nextEvents,
-      users,
-      ticketPlans,
-      bookings,
-      [newNotif, organizerNotif, ...notifications],
-      currentUser
-    );
+    runMutation(async () => {
+      await dbSaveEvent(newEvent, true);
+      setView('organizer-dashboard');
+    }, newEvent.status === EventStatus.Draft ? 'Draft saved!' : 'Event submitted for review!');
   };
 
   // Admin approval flow
   const handleApproveEvent = (eventId: string) => {
     const target = events.find(e => e.id === eventId);
     if (!target) return;
-
-    const nextEvents = events.map(e => {
-      if (e.id === eventId) return { ...e, status: EventStatus.Approved };
-      return e;
-    });
-
-    const notif: Notification = {
-      id: `notif-${Date.now()}`,
-      userId: target.organizerId,
-      title: 'Event Approved!',
-      message: `Your event "${target.title}" was approved by Admin. Please reach out to activate ticketing classes.`,
-      type: 'success',
-      createdAt: new Date().toISOString(),
-      isRead: false,
-    };
-
-    triggerToast(`Approved "${target.title}" successfully!`);
-    syncState(nextEvents, users, ticketPlans, bookings, [notif, ...notifications], currentUser);
+    runMutation(
+      () => setEventStatus(eventId, EventStatus.Approved, {
+        userId: target.organizerId,
+        title: 'Event Approved!',
+        message: `Your event "${target.title}" was approved by Admin. Please reach out to activate ticketing classes.`,
+        type: 'success',
+      }),
+      `Approved "${target.title}" successfully!`
+    );
   };
 
   const handleRejectEvent = (eventId: string) => {
     const target = events.find(e => e.id === eventId);
     if (!target) return;
-
-    const nextEvents = events.map(e => {
-      if (e.id === eventId) return { ...e, status: EventStatus.Draft }; // Move back to draft
-      return e;
-    });
-
-    const notif: Notification = {
-      id: `notif-${Date.now()}`,
-      userId: target.organizerId,
-      title: 'Submission Declined',
-      message: `Your event "${target.title}" was declined by Admin. Please review guideline rules and re-publish.`,
-      type: 'warning',
-      createdAt: new Date().toISOString(),
-      isRead: false,
-    };
-
-    triggerToast(`Declined "${target.title}" submission.`);
-    syncState(nextEvents, users, ticketPlans, bookings, [notif, ...notifications], currentUser);
+    runMutation(
+      () => setEventStatus(eventId, EventStatus.Draft, {
+        userId: target.organizerId,
+        title: 'Submission Declined',
+        message: `Your event "${target.title}" was declined by Admin. Please review guideline rules and re-publish.`,
+        type: 'warning',
+      }),
+      `Declined "${target.title}" submission.`
+    );
   };
 
   const handleToggleFeatureEvent = (eventId: string) => {
-    const nextEvents = events.map(e => {
-      if (e.id === eventId) return { ...e, isFeatured: !e.isFeatured };
-      return e;
-    });
-    triggerToast('Homepage features updated!');
-    syncState(nextEvents, users, ticketPlans, bookings, notifications, currentUser);
+    const target = events.find(e => e.id === eventId);
+    if (!target) return;
+    runMutation(() => setEventFeatured(eventId, !target.isFeatured), 'Homepage features updated!');
   };
 
   const handleToggleArchiveEvent = (eventId: string) => {
-    const nextEvents = events.map(e => {
-      if (e.id === eventId) return { ...e, status: EventStatus.Archived };
-      return e;
-    });
-    triggerToast('Event moved to archives.');
-    syncState(nextEvents, users, ticketPlans, bookings, notifications, currentUser);
+    runMutation(
+      () => setEventStatus(eventId, EventStatus.Archived),
+      'Event moved to archives.'
+    );
   };
 
   // Ticketing activated and setup (Admin adds plans)
   const handleAddTicketPlan = (plan: TicketPlan) => {
-    const nextPlans = [plan, ...ticketPlans];
-    
-    // Also notify organizer that ticketing is now active
     const eventObj = events.find(e => e.id === plan.eventId);
-    let updatedNotifs = [...notifications];
-    if (eventObj) {
-      updatedNotifs.unshift({
-        id: `notif-${Date.now()}`,
-        userId: eventObj.organizerId,
-        title: 'Ticketing Active!',
-        message: `Admin has launched ticket class "${plan.name}" priced at ${formatCurrency(plan.price)} for "${eventObj.title}".`,
-        type: 'success',
-        createdAt: new Date().toISOString(),
-        isRead: false,
-      });
+    if (!eventObj) {
+      triggerToast('Event not found for this ticket plan.', 'error');
+      return;
     }
-
-    triggerToast(`Ticket Plan "${plan.name}" added successfully.`);
-    syncState(events, users, nextPlans, bookings, updatedNotifs, currentUser);
+    runMutation(() => dbAddTicketPlan(plan, eventObj), `Ticket Plan "${plan.name}" added successfully.`);
   };
 
   const handleDeleteTicketPlan = (planId: string) => {
-    const nextPlans = ticketPlans.filter(p => p.id !== planId);
-    triggerToast('Ticket plan removed');
-    syncState(events, users, nextPlans, bookings, notifications, currentUser);
+    runMutation(() => dbDeleteTicketPlan(planId), 'Ticket plan removed');
   };
 
   const handleUpdateEventStatus = (eventId: string, status: EventStatus) => {
-    const nextEvents = events.map(e => {
-      if (e.id === eventId) return { ...e, status };
-      return e;
-    });
-    syncState(nextEvents, users, ticketPlans, bookings, notifications, currentUser);
+    runMutation(() => setEventStatus(eventId, status), '', { silent: true });
   };
 
-  // Booking updates (Admin verify payment)
+  // Booking updates (Admin verify payment). Declining restocks the tickets.
   const handleConfirmBooking = (bookingId: string) => {
     const target = bookings.find(b => b.id === bookingId);
     if (!target) return;
-
-    const nextBookings = bookings.map(b => {
-      if (b.id === bookingId) return { ...b, status: 'Confirmed' as const };
-      return b;
-    });
-
-    // Notify buyer
-    const notif: Notification = {
-      id: `notif-${Date.now()}`,
-      userId: target.buyerId,
-      title: 'Pass Verified & Active! 🎟️',
-      message: `Your payment for order reference "${target.bookingReference}" was confirmed! Open your portal to view your QR access pass.`,
-      type: 'success',
-      createdAt: new Date().toISOString(),
-      isRead: false,
-    };
-
-    triggerToast(`Verified payment for reference: ${target.bookingReference}`);
-    syncState(events, users, ticketPlans, nextBookings, [notif, ...notifications], currentUser);
+    runMutation(
+      () => dbConfirmBooking(target),
+      `Verified payment for reference: ${target.bookingReference}`
+    );
   };
 
   const handleCancelBooking = (bookingId: string) => {
     const target = bookings.find(b => b.id === bookingId);
     if (!target) return;
-
-    const nextBookings = bookings.filter(b => b.id !== bookingId);
-    triggerToast(`Declined reference ${target.bookingReference}`);
-    syncState(events, users, ticketPlans, nextBookings, notifications, currentUser);
+    const plan = ticketPlans.find(p => p.id === target.ticketPlanId);
+    runMutation(
+      () => dbCancelBooking(target, plan),
+      `Declined reference ${target.bookingReference}`
+    );
   };
 
-  // Add buyer booking from landing page
-  const handleAddBooking = (booking: Booking) => {
-    const nextBookings = [booking, ...bookings];
-    
-    // Notify Admin
-    const adminNotif: Notification = {
-      id: `notif-admin-${Date.now()}`,
-      userId: 'admin',
-      title: 'Ticket Allocation Request',
-      message: `Buyer "${booking.customerDetails.fullName}" requested ticket allocation. Transfer confirmation pending on WhatsApp.`,
-      type: 'info',
-      createdAt: new Date().toISOString(),
-      isRead: false,
-    };
-
-    triggerToast('Order generated! Redirecting to WhatsApp for bank confirmation...');
-    syncState(events, users, ticketPlans, nextBookings, [adminNotif, ...notifications], currentUser);
+  // Buyer booking from the landing page — server-side transaction.
+  const handleBookTickets = async (plan: TicketPlan, quantity: number): Promise<{ ok: boolean; error?: string; booking?: Booking }> => {
+    if (!currentUser) {
+      setAuthModalTab('Buyer');
+      setIsAuthModalOpen(true);
+      return { ok: false, error: 'Please sign in to book tickets.' };
+    }
+    if (!selectedEventId) return { ok: false, error: 'No event selected.' };
+    try {
+      const booking = await bookTickets(selectedEventId, plan.id, quantity);
+      triggerToast('Order generated! Redirecting to WhatsApp for bank confirmation...');
+      return { ok: true, booking };
+    } catch (error) {
+      triggerToast((error as Error).message, 'error');
+      return { ok: false, error: (error as Error).message };
+    }
   };
 
   // Profile updates (Organizer or Buyer)
   const handleUpdateUserProfile = (updatedUser: User) => {
-    const nextUsers = users.map(u => {
-      if (u.id === updatedUser.id) return updatedUser;
-      return u;
-    });
-    setCurrentUser(updatedUser);
-    localStorage.setItem('abuja_events_current_user', JSON.stringify(updatedUser));
-    syncState(events, nextUsers, ticketPlans, bookings, notifications, updatedUser);
+    runMutation(() => dbUpdateProfile(updatedUser), 'Profile updated successfully!');
   };
 
   // Location-awareness triggers and calculations
@@ -429,7 +316,7 @@ export default function App() {
 
   const filteredEvents = events.filter((e) => {
     // 1. Hide drafts and archived events from non-organizer, non-admin views
-    const isSpecialRole = currentUser?.id === 'admin' || (currentUser?.role === 'Organizer' && e.organizerId === currentUser.id);
+    const isSpecialRole = currentUser?.role === 'Admin' || (currentUser?.role === 'Organizer' && e.organizerId === currentUser.id);
     if (!isSpecialRole && (e.status === EventStatus.Draft || e.status === EventStatus.Archived)) {
       return false;
     }
@@ -573,7 +460,7 @@ export default function App() {
                   setAuthModalTab('Buyer');
                   setIsAuthModalOpen(true);
                 }}
-                onAddBooking={handleAddBooking}
+                onBook={handleBookTickets}
               />
             );
           })()
@@ -823,7 +710,7 @@ export default function App() {
                             <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse"></span>
                             Happening Today
                           </h3>
-                          <p className="text-xs text-gray-500">Events scheduled for today, Wednesday July 8, 2026</p>
+                          <p className="text-xs text-gray-500">Events scheduled for today, {new Date().toLocaleDateString('en-NG', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
                         </div>
 
                         <div className="flex overflow-x-auto gap-6 pb-4 scrollbar-none snap-x select-none">
@@ -1037,7 +924,7 @@ export default function App() {
             )}
 
             {/* VIEW: ADMIN CONSOLE */}
-            {view === 'admin-dashboard' && currentUser?.id === 'admin' && (
+            {view === 'admin-dashboard' && currentUser?.role === 'Admin' && (
               <AdminDashboard
                 events={events}
                 users={users}

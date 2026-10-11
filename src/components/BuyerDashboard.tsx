@@ -9,7 +9,7 @@ import {
   Check, QrCode, AlertCircle, Clock, CheckCircle, Smartphone 
 } from 'lucide-react';
 import { Booking, AbujaEvent, TicketPlan, User, Notification } from '../types';
-import { formatCurrency } from '../utils';
+import { formatCurrency, FALLBACK_FLYER } from '../utils';
 
 interface BuyerDashboardProps {
   buyer: User;
@@ -293,7 +293,7 @@ export default function BuyerDashboard({
                   className="group bg-gray-50/40 hover:bg-white rounded-2xl border border-gray-100 hover:border-gray-200 overflow-hidden cursor-pointer transition-all"
                 >
                   <div className="aspect-video relative overflow-hidden bg-gray-100">
-                    <img src={e.flyerUrl} alt={e.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" referrerPolicy="no-referrer" />
+                    <img src={e.flyerUrl || FALLBACK_FLYER} alt={e.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" referrerPolicy="no-referrer" />
                   </div>
                   <div className="p-4 space-y-1.5">
                     <strong className="text-xs text-gray-950 font-bold truncate block group-hover:text-amber-600 transition-colors">{e.title}</strong>

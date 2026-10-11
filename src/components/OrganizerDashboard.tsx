@@ -9,6 +9,7 @@ import {
   Settings, User as UserIcon, LayoutDashboard, FileText, Bell, BarChart2 
 } from 'lucide-react';
 import { AbujaEvent, EventStatus, User } from '../types';
+import { FALLBACK_FLYER } from '../utils';
 
 interface OrganizerDashboardProps {
   organizer: User;
@@ -204,7 +205,7 @@ export default function OrganizerDashboard({
                       onClick={() => onSelectEvent(e.id)}
                       className="flex items-center gap-4 p-3 rounded-xl border border-gray-100/70 hover:bg-gray-50/50 cursor-pointer transition-all"
                     >
-                      <img src={e.flyerUrl} alt={e.title} className="w-12 h-12 rounded-lg object-cover bg-gray-50" referrerPolicy="no-referrer" />
+                      <img src={e.flyerUrl || FALLBACK_FLYER} alt={e.title} className="w-12 h-12 rounded-lg object-cover bg-gray-50" referrerPolicy="no-referrer" />
                       <div className="flex-1 min-w-0">
                         <strong className="text-xs text-gray-900 block truncate font-sans font-semibold">{e.title}</strong>
                         <span className="text-[10px] text-gray-400 mt-0.5 block">{e.date} • {e.venueName}</span>
@@ -280,7 +281,7 @@ export default function OrganizerDashboard({
                   className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50/50 transition-all"
                 >
                   <div className="flex gap-4 items-center flex-1 min-w-0" onClick={() => onSelectEvent(e.id)}>
-                    <img src={e.flyerUrl} alt={e.title} className="w-14 h-14 rounded-xl object-cover bg-gray-100 border shrink-0 cursor-pointer" referrerPolicy="no-referrer" />
+                    <img src={e.flyerUrl || FALLBACK_FLYER} alt={e.title} className="w-14 h-14 rounded-xl object-cover bg-gray-100 border shrink-0 cursor-pointer" referrerPolicy="no-referrer" />
                     <div className="min-w-0 cursor-pointer">
                       <div className="flex items-center gap-2">
                         <strong className="text-sm font-bold text-gray-900 truncate font-sans leading-tight block">{e.title || 'Untitled Event'}</strong>
