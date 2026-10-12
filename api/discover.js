@@ -3,8 +3,9 @@
    POST /api/discover { area } → { area, bucket, fetchedAt, cached, results[] }
 
    Engine: Serper.dev (Google SERP results; 2,500 free credits at signup,
-   no credit card). Two complementary queries per area, deduped and shaped
-   into mini-cards. No social-media API contracts, no scraping.
+   no credit card). Two complementary queries per area, run in parallel,
+   deduped and shaped into mini-cards. No social-media API contracts, no
+   scraping.
 
    Cost control: results are cached in Firestore per area + UTC-day bucket,
    so repeated clicks are instant and each area costs two queries at most
@@ -146,26 +147,32 @@ async function webSearch(area) {
   const apiKey = process.env.SERPER_API_KEY;
   if (!apiKey) throw new Error('discovery is not configured (missing Serper key)');
 
-  const merged = [];
-  let okQueries = 0;
-  for (const q of buildQueries(area)) {
-    const res = await fetch(SERPER_URL, {
-      method: 'POST',
-      headers: { 'X-API-KEY': apiKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q, gl: 'ng', hl: 'en', num: 10 })
-    });
-    /* A failed query must not sink the whole discovery — take whatever
-       the other query returned instead. */
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      console.error(`serper query ${res.status} (${q}): ${body.slice(0, 200)}`);
-      continue;
-    }
-    okQueries += 1;
-    const json = await res.json();
-    merged.push(...(json.organic || []));
-  }
-  return { events: normalizeOrganic(merged, area), okQueries };
+  /* Run both queries in parallel — a cold discovery must stay well under
+     the function timeout even when Serper is slow. A failed query no
+     longer sinks the whole result set. */
+  const settled = await Promise.all(
+    buildQueries(area).map(async (q) => {
+      try {
+        const res = await fetch(SERPER_URL, {
+          method: 'POST',
+          headers: { 'X-API-KEY': apiKey, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ q, gl: 'ng', hl: 'en', num: 10 })
+        });
+        if (!res.ok) {
+          const body = await res.text().catch(() => '');
+          console.error(`serper query ${res.status} (${q}): ${body.slice(0, 200)}`);
+          return { ok: false, organic: [] };
+        }
+        const json = await res.json();
+        return { ok: true, organic: json.organic || [] };
+      } catch (error) {
+        console.error(`serper query failed (${q}): ${error.message}`);
+        return { ok: false, organic: [] };
+      }
+    })
+  );
+  const merged = settled.flatMap((r) => r.organic);
+  return { events: normalizeOrganic(merged, area), okQueries: settled.filter((r) => r.ok).length };
 }
 
 export default async function handler(req, res) {
