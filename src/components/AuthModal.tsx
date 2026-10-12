@@ -105,22 +105,22 @@ export default function AuthModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-md">
-      <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-abyss/60 backdrop-blur-md">
+      <div className="relative w-full max-w-lg bg-panel rounded-3xl shadow-2xl overflow-hidden border border-edge flex flex-col max-h-[90vh]">
         
         {/* Header */}
-        <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+        <div className="p-6 border-b border-edge/50 flex justify-between items-center bg-abyss2/50">
           <div>
-            <h2 className="font-sans font-bold text-xl text-gray-900">
+            <h2 className="font-sans font-bold text-xl text-ink">
               {isLogin ? 'Welcome Back' : 'Join Abuja Events'}
             </h2>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-mut mt-1">
               Centralized Abuja Events & Ticket Hub
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 text-mut2 hover:text-mut hover:bg-panel rounded-full transition-colors"
           >
             <X size={20} />
           </button>
@@ -129,12 +129,12 @@ export default function AuthModal({
         {/* Scrollable Container */}
         <div className="overflow-y-auto p-6 flex-1">
           {/* Role selector */}
-          <div className="flex bg-gray-100 p-1.5 rounded-2xl mb-6">
+          <div className="flex bg-panel p-1.5 rounded-2xl mb-6">
             <button
               type="button"
               onClick={() => setRole('Buyer')}
               className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                role === 'Buyer' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-900'
+                role === 'Buyer' ? 'bg-panel text-ink shadow-xs' : 'text-mut hover:text-ink'
               }`}
             >
               For Visitors & Buyers
@@ -143,7 +143,7 @@ export default function AuthModal({
               type="button"
               onClick={() => setRole('Organizer')}
               className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                role === 'Organizer' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-900'
+                role === 'Organizer' ? 'bg-panel text-ink shadow-xs' : 'text-mut hover:text-ink'
               }`}
             >
               For Organizers
@@ -151,7 +151,7 @@ export default function AuthModal({
           </div>
 
           {error && (
-            <div className="mb-4 bg-red-50 border border-red-100 text-red-700 text-xs rounded-xl p-3.5 font-medium leading-relaxed">
+            <div className="mb-4 bg-danger/10 border border-danger/25 text-danger text-xs rounded-xl p-3.5 font-medium leading-relaxed">
               {error}
             </div>
           )}
@@ -160,36 +160,36 @@ export default function AuthModal({
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* EMAIL */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-                Email Address <span className="text-red-500">*</span>
+              <label className="block text-xs font-semibold text-ink uppercase tracking-wider mb-1.5">
+                Email Address <span className="text-danger">*</span>
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-3.5 text-gray-400" size={18} />
+                <Mail className="absolute left-3.5 top-3.5 text-mut2" size={18} />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white rounded-xl pl-11 pr-4 py-3 text-sm outline-hidden transition-all text-gray-900"
+                  className="w-full bg-abyss2 border border-edge focus:border-neon focus:bg-panel rounded-xl pl-11 pr-4 py-3 text-sm outline-hidden transition-all text-ink"
                 />
               </div>
             </div>
 
             {/* PASSWORD */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-                Password <span className="text-red-500">*</span>
+              <label className="block text-xs font-semibold text-ink uppercase tracking-wider mb-1.5">
+                Password <span className="text-danger">*</span>
               </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-3.5 text-gray-400" size={18} />
+                <Lock className="absolute left-3.5 top-3.5 text-mut2" size={18} />
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white rounded-xl pl-11 pr-4 py-3 text-sm outline-hidden transition-all text-gray-900"
+                  className="w-full bg-abyss2 border border-edge focus:border-neon focus:bg-panel rounded-xl pl-11 pr-4 py-3 text-sm outline-hidden transition-all text-ink"
                 />
               </div>
             </div>
@@ -199,75 +199,75 @@ export default function AuthModal({
               <>
                 {/* FULL NAME */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-                    Full Name <span className="text-red-500">*</span>
+                  <label className="block text-xs font-semibold text-ink uppercase tracking-wider mb-1.5">
+                    Full Name <span className="text-danger">*</span>
                   </label>
                   <div className="relative">
-                    <User className="absolute left-3.5 top-3.5 text-gray-400" size={18} />
+                    <User className="absolute left-3.5 top-3.5 text-mut2" size={18} />
                     <input
                       type="text"
                       required
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="e.g. John Doe"
-                      className="w-full bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white rounded-xl pl-11 pr-4 py-3 text-sm outline-hidden transition-all text-gray-900"
+                      className="w-full bg-abyss2 border border-edge focus:border-neon focus:bg-panel rounded-xl pl-11 pr-4 py-3 text-sm outline-hidden transition-all text-ink"
                     />
                   </div>
                 </div>
 
                 {/* PHONE NUMBER */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-                    Phone Number <span className="text-red-500">*</span>
+                  <label className="block text-xs font-semibold text-ink uppercase tracking-wider mb-1.5">
+                    Phone Number <span className="text-danger">*</span>
                   </label>
                   <div className="relative">
-                    <Phone className="absolute left-3.5 top-3.5 text-gray-400" size={18} />
+                    <Phone className="absolute left-3.5 top-3.5 text-mut2" size={18} />
                     <input
                       type="tel"
                       required
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="+234 800 000 0000"
-                      className="w-full bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white rounded-xl pl-11 pr-4 py-3 text-sm outline-hidden transition-all text-gray-900"
+                      className="w-full bg-abyss2 border border-edge focus:border-neon focus:bg-panel rounded-xl pl-11 pr-4 py-3 text-sm outline-hidden transition-all text-ink"
                     />
                   </div>
                 </div>
 
                 {/* SPECIFIC BUYER FIELDS */}
                 {role === 'Buyer' && (
-                  <div className="border-t border-gray-100 pt-4 mt-2 space-y-3">
-                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                  <div className="border-t border-edge pt-4 mt-2 space-y-3">
+                    <p className="text-[11px] font-bold text-mut2 uppercase tracking-wider mb-1">
                       Online Presence (Optional)
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
-                        <label className="text-[10px] font-semibold text-gray-500 block mb-1">Instagram</label>
+                        <label className="text-[10px] font-semibold text-mut block mb-1">Instagram</label>
                         <input
                           type="text"
                           value={buyerInstagram}
                           onChange={(e) => setBuyerInstagram(e.target.value)}
                           placeholder="@username"
-                          className="w-full bg-gray-50 border border-gray-100 focus:border-amber-500 focus:bg-white rounded-lg px-3 py-2 text-xs outline-hidden text-gray-900"
+                          className="w-full bg-abyss2 border border-edge focus:border-neon focus:bg-panel rounded-lg px-3 py-2 text-xs outline-hidden text-ink"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-semibold text-gray-500 block mb-1">X (Twitter)</label>
+                        <label className="text-[10px] font-semibold text-mut block mb-1">X (Twitter)</label>
                         <input
                           type="text"
                           value={buyerX}
                           onChange={(e) => setBuyerX(e.target.value)}
                           placeholder="@username"
-                          className="w-full bg-gray-50 border border-gray-100 focus:border-amber-500 focus:bg-white rounded-lg px-3 py-2 text-xs outline-hidden text-gray-900"
+                          className="w-full bg-abyss2 border border-edge focus:border-neon focus:bg-panel rounded-lg px-3 py-2 text-xs outline-hidden text-ink"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-semibold text-gray-500 block mb-1">Facebook</label>
+                        <label className="text-[10px] font-semibold text-mut block mb-1">Facebook</label>
                         <input
                           type="text"
                           value={buyerFacebook}
                           onChange={(e) => setBuyerFacebook(e.target.value)}
                           placeholder="fb.com/username"
-                          className="w-full bg-gray-50 border border-gray-100 focus:border-amber-500 focus:bg-white rounded-lg px-3 py-2 text-xs outline-hidden text-gray-900"
+                          className="w-full bg-abyss2 border border-edge focus:border-neon focus:bg-panel rounded-lg px-3 py-2 text-xs outline-hidden text-ink"
                         />
                       </div>
                     </div>
@@ -276,98 +276,98 @@ export default function AuthModal({
 
                 {/* SPECIFIC ORGANIZER FIELDS */}
                 {role === 'Organizer' && (
-                  <div className="border-t border-gray-100 pt-4 mt-2 space-y-4">
-                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                  <div className="border-t border-edge pt-4 mt-2 space-y-4">
+                    <p className="text-[11px] font-bold text-mut2 uppercase tracking-wider">
                       Business Details
                     </p>
                     
                     {/* Business Name */}
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-                        Business Name <span className="text-red-500">*</span>
+                      <label className="block text-xs font-semibold text-ink uppercase tracking-wider mb-1.5">
+                        Business Name <span className="text-danger">*</span>
                       </label>
                       <div className="relative">
-                        <Briefcase className="absolute left-3.5 top-3.5 text-gray-400" size={18} />
+                        <Briefcase className="absolute left-3.5 top-3.5 text-mut2" size={18} />
                         <input
                           type="text"
                           required
                           value={businessName}
                           onChange={(e) => setBusinessName(e.target.value)}
                           placeholder="e.g. Abuja Creative Hub"
-                          className="w-full bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white rounded-xl pl-11 pr-4 py-3 text-sm outline-hidden text-gray-900"
+                          className="w-full bg-abyss2 border border-edge focus:border-neon focus:bg-panel rounded-xl pl-11 pr-4 py-3 text-sm outline-hidden text-ink"
                         />
                       </div>
                     </div>
 
                     {/* Brand Logo URL */}
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+                      <label className="block text-xs font-semibold text-ink uppercase tracking-wider mb-1.5">
                         Brand Logo URL (Optional)
                       </label>
                       <div className="relative">
-                        <Globe className="absolute left-3.5 top-3.5 text-gray-400" size={18} />
+                        <Globe className="absolute left-3.5 top-3.5 text-mut2" size={18} />
                         <input
                           type="url"
                           value={brandLogo}
                           onChange={(e) => setBrandLogo(e.target.value)}
                           placeholder="https://images.unsplash.com/... or empty for default"
-                          className="w-full bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white rounded-xl pl-11 pr-4 py-3 text-sm outline-hidden text-gray-900"
+                          className="w-full bg-abyss2 border border-edge focus:border-neon focus:bg-panel rounded-xl pl-11 pr-4 py-3 text-sm outline-hidden text-ink"
                         />
                       </div>
                     </div>
 
                     {/* Business Address */}
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-                        Business Address <span className="text-red-500">*</span>
+                      <label className="block text-xs font-semibold text-ink uppercase tracking-wider mb-1.5">
+                        Business Address <span className="text-danger">*</span>
                       </label>
                       <div className="relative">
-                        <MapPin className="absolute left-3.5 top-3.5 text-gray-400" size={18} />
+                        <MapPin className="absolute left-3.5 top-3.5 text-mut2" size={18} />
                         <input
                           type="text"
                           required
                           value={businessAddress}
                           onChange={(e) => setBusinessAddress(e.target.value)}
                           placeholder="e.g. Aminu Kano Crescent, Wuse II"
-                          className="w-full bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white rounded-xl pl-11 pr-4 py-3 text-sm outline-hidden text-gray-900"
+                          className="w-full bg-abyss2 border border-edge focus:border-neon focus:bg-panel rounded-xl pl-11 pr-4 py-3 text-sm outline-hidden text-ink"
                         />
                       </div>
                     </div>
 
                     {/* Organizer Social Presence */}
                     <div className="space-y-3">
-                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                      <p className="text-[11px] font-bold text-mut2 uppercase tracking-wider mb-1">
                         Social Presence & Links
                       </p>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
-                          <label className="text-[10px] font-semibold text-gray-500 block mb-1">Instagram</label>
+                          <label className="text-[10px] font-semibold text-mut block mb-1">Instagram</label>
                           <input
                             type="text"
                             value={orgInstagram}
                             onChange={(e) => setOrgInstagram(e.target.value)}
                             placeholder="@brand"
-                            className="w-full bg-gray-50 border border-gray-100 focus:border-amber-500 focus:bg-white rounded-lg px-3 py-2 text-xs outline-hidden text-gray-900"
+                            className="w-full bg-abyss2 border border-edge focus:border-neon focus:bg-panel rounded-lg px-3 py-2 text-xs outline-hidden text-ink"
                           />
                         </div>
                         <div>
-                          <label className="text-[10px] font-semibold text-gray-500 block mb-1">Facebook</label>
+                          <label className="text-[10px] font-semibold text-mut block mb-1">Facebook</label>
                           <input
                             type="text"
                             value={orgFacebook}
                             onChange={(e) => setOrgFacebook(e.target.value)}
                             placeholder="fb.com/brand"
-                            className="w-full bg-gray-50 border border-gray-100 focus:border-amber-500 focus:bg-white rounded-lg px-3 py-2 text-xs outline-hidden text-gray-900"
+                            className="w-full bg-abyss2 border border-edge focus:border-neon focus:bg-panel rounded-lg px-3 py-2 text-xs outline-hidden text-ink"
                           />
                         </div>
                         <div>
-                          <label className="text-[10px] font-semibold text-gray-500 block mb-1">Website (Optional)</label>
+                          <label className="text-[10px] font-semibold text-mut block mb-1">Website (Optional)</label>
                           <input
                             type="text"
                             value={orgWebsite}
                             onChange={(e) => setOrgWebsite(e.target.value)}
                             placeholder="brand.com"
-                            className="w-full bg-gray-50 border border-gray-100 focus:border-amber-500 focus:bg-white rounded-lg px-3 py-2 text-xs outline-hidden text-gray-900"
+                            className="w-full bg-abyss2 border border-edge focus:border-neon focus:bg-panel rounded-lg px-3 py-2 text-xs outline-hidden text-ink"
                           />
                         </div>
                       </div>
@@ -380,7 +380,7 @@ export default function AuthModal({
             <button
               type="submit"
               disabled={isBusy}
-              className="w-full bg-amber-600 hover:bg-amber-700 disabled:opacity-60 text-white font-semibold py-3.5 px-4 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 text-sm mt-6 cursor-pointer"
+              className="w-full bg-navy hover:bg-navy disabled:opacity-60 text-ink font-semibold py-3.5 px-4 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 text-sm mt-6 cursor-pointer"
             >
               {isBusy ? 'Please wait…' : isLogin ? 'Login Securely' : 'Complete Registration'}
               {!isBusy && <ArrowRight size={16} />}
@@ -388,14 +388,14 @@ export default function AuthModal({
           </form>
 
           {/* Switch Tab */}
-          <div className="text-center mt-6 pt-5 border-t border-gray-50">
+          <div className="text-center mt-6 pt-5 border-t border-edge/50">
             <button
               type="button"
               onClick={() => {
                 setIsLogin(!isLogin);
                 setError('');
               }}
-              className="text-xs text-amber-600 hover:text-amber-800 font-semibold"
+              className="text-xs text-neon hover:text-neon font-semibold"
             >
               {isLogin
                 ? "Don't have an account yet? Register here"

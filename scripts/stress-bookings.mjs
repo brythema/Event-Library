@@ -121,7 +121,7 @@ try {
   }, adminToken);
   const planStatus = await patchDoc(`ticketPlans/${FIXTURE_PLAN}`, {
     eventId: FIXTURE_EVENT, name: 'Rush Class', price: 1000, availableQuantity: AVAILABILITY,
-    maxPurchaseLimit: 1, description: '', color: '#000000', displayOrder: 1
+    maxPurchaseLimit: 1, description: '', color: '#48d8ff', displayOrder: 1
   }, adminToken);
   report('fixture ready (availability ' + AVAILABILITY + ')', evStatus === 200 && planStatus === 200, `event ${evStatus}, plan ${planStatus}`);
 

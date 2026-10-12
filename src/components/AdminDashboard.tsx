@@ -55,7 +55,7 @@ export default function AdminDashboard({
   const [planQty, setPlanQty] = useState(100);
   const [planLimit, setPlanLimit] = useState(5);
   const [planDesc, setPlanDesc] = useState('General Admission with free access to stalls.');
-  const [planColor, setPlanColor] = useState('#3B82F6');
+  const [planColor, setPlanColor] = useState('#48d8ff');
 
   // Computed metrics
   const organizers = users.filter((u) => u.role === 'Organizer');
@@ -94,7 +94,7 @@ export default function AdminDashboard({
     setPlanName('VIP Entrance');
     setPlanPrice(15000);
     setPlanDesc('Includes special seating and 1 free drink.');
-    setPlanColor('#8B5CF6');
+    setPlanColor('#65f4c3');
   };
 
   const selectedEventPlans = ticketPlans.filter((p) => p.eventId === ticketSetupEventId);
@@ -104,32 +104,32 @@ export default function AdminDashboard({
     <div className="w-full max-w-5xl mx-auto space-y-6">
       
       {/* Admin Title badge */}
-      <div className="bg-slate-900 text-white p-6 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-abyss text-ink p-6 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <span className="bg-amber-500 text-gray-950 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
+          <span className="bg-neon text-ink text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
             SYSTEM CONTROL CENTER
           </span>
-          <h2 className="font-sans font-black text-2xl text-white mt-2">
+          <h2 className="font-sans font-black text-2xl text-ink mt-2">
             Administrator Console
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-mut mt-1">
             Abuja Events Platform Central Authority
           </p>
         </div>
         
         {/* Status indicator */}
-        <div className="bg-slate-800 border border-slate-700 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 text-slate-300">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+        <div className="bg-abyss2 border border-edge px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 text-mut">
+          <span className="w-2.5 h-2.5 rounded-full bg-neon2 animate-ping"></span>
           <span>System Active • Live Database Connected</span>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap border-b border-gray-200">
+      <div className="flex flex-wrap border-b border-edge">
         <button
           onClick={() => setActiveTab('stats')}
           className={`pb-3.5 px-5 font-semibold text-xs border-b-2 transition-colors flex items-center gap-2 ${
-            activeTab === 'stats' ? 'border-amber-600 text-amber-700' : 'border-transparent text-gray-400 hover:text-gray-600'
+            activeTab === 'stats' ? 'border-neon text-neon' : 'border-transparent text-mut2 hover:text-mut'
           }`}
         >
           📈 Stats & Analytics
@@ -137,17 +137,17 @@ export default function AdminDashboard({
         <button
           onClick={() => setActiveTab('events')}
           className={`pb-3.5 px-5 font-semibold text-xs border-b-2 transition-colors flex items-center gap-2 ${
-            activeTab === 'events' ? 'border-amber-600 text-amber-700' : 'border-transparent text-gray-400 hover:text-gray-600'
+            activeTab === 'events' ? 'border-neon text-neon' : 'border-transparent text-mut2 hover:text-mut'
           }`}
         >
           📂 Event Approvals {pendingApprovals.length > 0 && (
-            <span className="bg-amber-100 text-amber-800 text-[9px] px-2 py-0.5 rounded-full font-extrabold">{pendingApprovals.length}</span>
+            <span className="bg-neon/15 text-neon text-[9px] px-2 py-0.5 rounded-full font-extrabold">{pendingApprovals.length}</span>
           )}
         </button>
         <button
           onClick={() => setActiveTab('ticketing')}
           className={`pb-3.5 px-5 font-semibold text-xs border-b-2 transition-colors flex items-center gap-2 ${
-            activeTab === 'ticketing' ? 'border-amber-600 text-amber-700' : 'border-transparent text-gray-400 hover:text-gray-600'
+            activeTab === 'ticketing' ? 'border-neon text-neon' : 'border-transparent text-mut2 hover:text-mut'
           }`}
         >
           🎟️ Ticket Activations
@@ -155,17 +155,17 @@ export default function AdminDashboard({
         <button
           onClick={() => setActiveTab('bookings')}
           className={`pb-3.5 px-5 font-semibold text-xs border-b-2 transition-colors flex items-center gap-2 ${
-            activeTab === 'bookings' ? 'border-amber-600 text-amber-700' : 'border-transparent text-gray-400 hover:text-gray-600'
+            activeTab === 'bookings' ? 'border-neon text-neon' : 'border-transparent text-mut2 hover:text-mut'
           }`}
         >
           🏦 Payment Verifications {pendingPaymentsCount > 0 && (
-            <span className="bg-red-100 text-red-800 text-[9px] px-2 py-0.5 rounded-full font-extrabold">{pendingPaymentsCount}</span>
+            <span className="bg-danger/15 text-danger text-[9px] px-2 py-0.5 rounded-full font-extrabold">{pendingPaymentsCount}</span>
           )}
         </button>
         <button
           onClick={() => setActiveTab('users')}
           className={`pb-3.5 px-5 font-semibold text-xs border-b-2 transition-colors flex items-center gap-2 ${
-            activeTab === 'users' ? 'border-amber-600 text-amber-700' : 'border-transparent text-gray-400 hover:text-gray-600'
+            activeTab === 'users' ? 'border-neon text-neon' : 'border-transparent text-mut2 hover:text-mut'
           }`}
         >
           👥 User Directories
@@ -176,51 +176,51 @@ export default function AdminDashboard({
       {activeTab === 'stats' && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white border border-gray-100 p-5 rounded-2xl">
-              <span className="text-[10px] font-bold text-gray-400 block uppercase tracking-wider mb-1">Total Sales</span>
-              <strong className="text-gray-900 text-2xl font-black font-mono">{formatCurrency(totalSales)}</strong>
+            <div className="bg-panel border border-edge p-5 rounded-2xl">
+              <span className="text-[10px] font-bold text-mut2 block uppercase tracking-wider mb-1">Total Sales</span>
+              <strong className="text-ink text-2xl font-black font-mono">{formatCurrency(totalSales)}</strong>
             </div>
-            <div className="bg-white border border-gray-100 p-5 rounded-2xl">
-              <span className="text-[10px] font-bold text-gray-400 block uppercase tracking-wider mb-1">Registered Buyers</span>
-              <strong className="text-gray-900 text-2xl font-black font-mono">{buyers.length} Users</strong>
+            <div className="bg-panel border border-edge p-5 rounded-2xl">
+              <span className="text-[10px] font-bold text-mut2 block uppercase tracking-wider mb-1">Registered Buyers</span>
+              <strong className="text-ink text-2xl font-black font-mono">{buyers.length} Users</strong>
             </div>
-            <div className="bg-white border border-gray-100 p-5 rounded-2xl">
-              <span className="text-[10px] font-bold text-gray-400 block uppercase tracking-wider mb-1">Active Organizers</span>
-              <strong className="text-gray-900 text-2xl font-black font-mono">{organizers.length} Orgs</strong>
+            <div className="bg-panel border border-edge p-5 rounded-2xl">
+              <span className="text-[10px] font-bold text-mut2 block uppercase tracking-wider mb-1">Active Organizers</span>
+              <strong className="text-ink text-2xl font-black font-mono">{organizers.length} Orgs</strong>
             </div>
-            <div className="bg-white border border-gray-100 p-5 rounded-2xl">
-              <span className="text-[10px] font-bold text-gray-400 block uppercase tracking-wider mb-1">Active Events</span>
-              <strong className="text-gray-900 text-2xl font-black font-mono">{activeEvents.length} listings</strong>
+            <div className="bg-panel border border-edge p-5 rounded-2xl">
+              <span className="text-[10px] font-bold text-mut2 block uppercase tracking-wider mb-1">Active Events</span>
+              <strong className="text-ink text-2xl font-black font-mono">{activeEvents.length} listings</strong>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* Quick Action Alerts */}
-            <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-4">
-              <h3 className="font-sans font-bold text-sm text-gray-900 pb-2 border-b border-gray-50">
+            <div className="bg-panel border border-edge rounded-2xl p-5 space-y-4">
+              <h3 className="font-sans font-bold text-sm text-ink pb-2 border-b border-edge/50">
                 ⚠️ Platform Action Required
               </h3>
 
               <div className="space-y-3 text-xs">
                 {pendingApprovals.length > 0 ? (
-                  <div className="p-3 bg-amber-50 border border-amber-100 text-amber-800 rounded-xl flex justify-between items-center">
+                  <div className="p-3 bg-neon/10 border border-neon/30 text-neon rounded-xl flex justify-between items-center">
                     <span><strong>{pendingApprovals.length} Event listings</strong> awaiting visual approval.</span>
-                    <button onClick={() => setActiveTab('events')} className="bg-white px-2.5 py-1 rounded-lg border font-bold text-[10px] hover:bg-amber-100 transition-colors">Review Now</button>
+                    <button onClick={() => setActiveTab('events')} className="bg-panel px-2.5 py-1 rounded-lg border font-bold text-[10px] hover:bg-neon/15 transition-colors">Review Now</button>
                   </div>
                 ) : (
-                  <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl">
+                  <div className="p-3 bg-neon2/10 text-neon2 rounded-xl">
                     ✓ All event submissions are reviewed and up to date.
                   </div>
                 )}
 
                 {pendingPaymentsCount > 0 ? (
-                  <div className="p-3 bg-red-50 border border-red-100 text-red-800 rounded-xl flex justify-between items-center">
+                  <div className="p-3 bg-danger/10 border border-danger/25 text-danger rounded-xl flex justify-between items-center">
                     <span><strong>{pendingPaymentsCount} Ticket transfers</strong> awaiting bank verification.</span>
-                    <button onClick={() => setActiveTab('bookings')} className="bg-white px-2.5 py-1 rounded-lg border font-bold text-[10px] hover:bg-red-100 transition-colors">Verify Now</button>
+                    <button onClick={() => setActiveTab('bookings')} className="bg-panel px-2.5 py-1 rounded-lg border font-bold text-[10px] hover:bg-danger/15 transition-colors">Verify Now</button>
                   </div>
                 ) : (
-                  <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl">
+                  <div className="p-3 bg-neon2/10 text-neon2 rounded-xl">
                     ✓ No pending payments or ticket allocations.
                   </div>
                 )}
@@ -228,8 +228,8 @@ export default function AdminDashboard({
             </div>
 
             {/* Platform Settings details */}
-            <div className="bg-white border border-gray-100 rounded-2xl p-5 text-xs text-gray-600 leading-relaxed space-y-3">
-              <h3 className="font-sans font-bold text-sm text-gray-900 pb-2 border-b border-gray-50">
+            <div className="bg-panel border border-edge rounded-2xl p-5 text-xs text-mut leading-relaxed space-y-3">
+              <h3 className="font-sans font-bold text-sm text-ink pb-2 border-b border-edge/50">
                 🔒 System Administration Rules
               </h3>
               <p>
@@ -246,42 +246,42 @@ export default function AdminDashboard({
 
       {/* EVENT APPROVALS TAB */}
       {activeTab === 'events' && (
-        <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-4">
-          <div className="flex justify-between items-center pb-3 border-b border-gray-50">
+        <div className="bg-panel border border-edge rounded-2xl p-5 space-y-4">
+          <div className="flex justify-between items-center pb-3 border-b border-edge/50">
             <div>
-              <h4 className="font-sans font-bold text-sm text-gray-900">Review Abuja Event Listings</h4>
-              <p className="text-xs text-gray-500">Enable, reject, or archive active event pages</p>
+              <h4 className="font-sans font-bold text-sm text-ink">Review Abuja Event Listings</h4>
+              <p className="text-xs text-mut">Enable, reject, or archive active event pages</p>
             </div>
-            <span className="text-xs bg-gray-100 px-3 py-1 rounded-md text-gray-500 font-bold">{events.length} listings</span>
+            <span className="text-xs bg-panel px-3 py-1 rounded-md text-mut font-bold">{events.length} listings</span>
           </div>
 
           <div className="space-y-4">
             {events.map((e) => (
               <div
                 key={e.id}
-                className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 border rounded-2xl hover:bg-gray-50/50 transition-all"
+                className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 border rounded-2xl hover:bg-abyss2/50 transition-all"
               >
                 <div className="flex gap-4 items-center flex-1 min-w-0">
-                  <img src={e.flyerUrl || FALLBACK_FLYER} alt={e.title} className="w-12 h-12 rounded-xl object-cover border bg-gray-50" referrerPolicy="no-referrer" />
+                  <img src={e.flyerUrl || FALLBACK_FLYER} alt={e.title} className="w-12 h-12 rounded-xl object-cover border bg-abyss2" referrerPolicy="no-referrer" />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <strong className="text-xs text-gray-900 font-bold font-sans block truncate max-w-xs">{e.title}</strong>
-                      <span className="text-[10px] bg-gray-100 border text-gray-600 px-2 py-0.5 rounded-full font-bold uppercase">{e.status}</span>
+                      <strong className="text-xs text-ink font-bold font-sans block truncate max-w-xs">{e.title}</strong>
+                      <span className="text-[10px] bg-panel border text-mut px-2 py-0.5 rounded-full font-bold uppercase">{e.status}</span>
                       {e.isFeatured && (
-                        <span className="inline-flex items-center gap-0.5 text-[9px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-md font-bold">
+                        <span className="inline-flex items-center gap-0.5 text-[9px] bg-neon/10 text-neon border border-neon/40 px-1.5 py-0.5 rounded-md font-bold">
                           ★ Featured
                         </span>
                       )}
                     </div>
-                    <p className="text-[11px] text-gray-500 mt-1">{e.category} • {e.area} • Organized by: {e.organizerName}</p>
-                    <p className="text-[10px] text-gray-400 mt-0.5">Contact: {e.phone} | {e.email}</p>
+                    <p className="text-[11px] text-mut mt-1">{e.category} • {e.area} • Organized by: {e.organizerName}</p>
+                    <p className="text-[10px] text-mut2 mt-0.5">Contact: {e.phone} | {e.email}</p>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-1.5 items-center justify-end self-stretch sm:self-auto pt-3 sm:pt-0 border-t sm:border-0 border-gray-50">
+                <div className="flex flex-wrap gap-1.5 items-center justify-end self-stretch sm:self-auto pt-3 sm:pt-0 border-t sm:border-0 border-edge/50">
                   <button
                     onClick={() => onSelectEvent(e.id)}
-                    className="p-2 bg-gray-50 hover:bg-gray-100 border rounded-xl text-gray-600 text-xs font-semibold flex items-center gap-1.5"
+                    className="p-2 bg-abyss2 hover:bg-panel border rounded-xl text-mut text-xs font-semibold flex items-center gap-1.5"
                     title="Preview Landing page"
                   >
                     <Eye size={14} /> Preview
@@ -292,13 +292,13 @@ export default function AdminDashboard({
                     <>
                       <button
                         onClick={() => onApproveEvent(e.id)}
-                        className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold flex items-center gap-1"
+                        className="px-3 py-2 bg-neon2/10 hover:bg-neon2/15 text-neon2 rounded-xl text-xs font-bold flex items-center gap-1"
                       >
                         <Check size={14} /> Approve
                       </button>
                       <button
                         onClick={() => onRejectEvent(e.id)}
-                        className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl text-xs font-bold flex items-center gap-1"
+                        className="px-3 py-2 bg-danger/10 hover:bg-danger/15 text-danger rounded-xl text-xs font-bold flex items-center gap-1"
                       >
                         <X size={14} /> Reject
                       </button>
@@ -310,7 +310,7 @@ export default function AdminDashboard({
                     <button
                       onClick={() => onToggleFeatureEvent(e.id)}
                       className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1 ${
-                        e.isFeatured ? 'bg-amber-100 text-amber-700' : 'bg-gray-50 hover:bg-gray-100 border'
+                        e.isFeatured ? 'bg-neon/15 text-neon' : 'bg-abyss2 hover:bg-panel border'
                       }`}
                     >
                       <Star size={13} fill={e.isFeatured ? 'currentColor' : 'none'} />
@@ -322,7 +322,7 @@ export default function AdminDashboard({
                   {e.status !== EventStatus.Archived && (
                     <button
                       onClick={() => onToggleArchiveEvent(e.id)}
-                      className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-xl text-xs font-semibold"
+                      className="px-3 py-2 bg-panel hover:bg-panel2 text-mut rounded-xl text-xs font-semibold"
                     >
                       Archive Event
                     </button>
@@ -339,8 +339,8 @@ export default function AdminDashboard({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* List of events to choose */}
-          <div className="lg:col-span-1 bg-white border border-gray-100 rounded-2xl p-5 space-y-4">
-            <h4 className="font-sans font-bold text-sm text-gray-900 pb-2 border-b border-gray-50">
+          <div className="lg:col-span-1 bg-panel border border-edge rounded-2xl p-5 space-y-4">
+            <h4 className="font-sans font-bold text-sm text-ink pb-2 border-b border-edge/50">
               Select Approved Event
             </h4>
             <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
@@ -352,12 +352,12 @@ export default function AdminDashboard({
                     onClick={() => setTicketSetupEventId(e.id)}
                     className={`w-full text-left p-3 rounded-xl border transition-all ${
                       ticketSetupEventId === e.id
-                        ? 'border-amber-600 bg-amber-50/20 font-semibold'
-                        : 'border-gray-100 hover:bg-gray-50'
+                        ? 'border-neon bg-neon/15 font-semibold'
+                        : 'border-edge hover:bg-abyss2'
                     }`}
                   >
-                    <strong className="text-xs text-gray-900 block truncate">{e.title}</strong>
-                    <span className="text-[10px] text-gray-400 block mt-1 uppercase">{e.status} • {e.area}</span>
+                    <strong className="text-xs text-ink block truncate">{e.title}</strong>
+                    <span className="text-[10px] text-mut2 block mt-1 uppercase">{e.status} • {e.area}</span>
                   </button>
                 ))}
             </div>
@@ -366,37 +366,37 @@ export default function AdminDashboard({
           {/* Ticket Plan Manager form */}
           <div className="lg:col-span-2 space-y-6">
             {targetEvent ? (
-              <div className="bg-white border border-gray-100 rounded-2xl p-6 space-y-6">
-                <div className="pb-3 border-b border-gray-50 flex justify-between items-center">
+              <div className="bg-panel border border-edge rounded-2xl p-6 space-y-6">
+                <div className="pb-3 border-b border-edge/50 flex justify-between items-center">
                   <div>
-                    <h4 className="font-sans font-bold text-base text-gray-900">
+                    <h4 className="font-sans font-bold text-base text-ink">
                       Configure Ticket Classes for "{targetEvent.title}"
                     </h4>
-                    <p className="text-xs text-gray-500 mt-0.5">Adding plans auto-activates landing page sales buttons</p>
+                    <p className="text-xs text-mut mt-0.5">Adding plans auto-activates landing page sales buttons</p>
                   </div>
-                  <span className="text-xs bg-emerald-50 text-emerald-700 font-extrabold px-3 py-1 rounded-full uppercase">
+                  <span className="text-xs bg-neon2/10 text-neon2 font-extrabold px-3 py-1 rounded-full uppercase">
                     {targetEvent.status}
                   </span>
                 </div>
 
                 {/* Existing plans list */}
                 <div className="space-y-3">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Existing Ticket Plans</span>
+                  <span className="text-[10px] font-bold text-mut2 uppercase tracking-wider block">Existing Ticket Plans</span>
                   {selectedEventPlans.length === 0 ? (
-                    <div className="text-center py-6 bg-gray-50/50 rounded-xl border border-dashed text-xs text-gray-400">
+                    <div className="text-center py-6 bg-abyss2/50 rounded-xl border border-dashed text-xs text-mut2">
                       No ticket plans configured. Added plans will automatically convert status to "Ticketing Active".
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {selectedEventPlans.map(plan => (
-                        <div key={plan.id} className="border border-gray-100 p-4 rounded-xl flex justify-between items-start bg-gray-50/50">
+                        <div key={plan.id} className="border border-edge p-4 rounded-xl flex justify-between items-start bg-abyss2/50">
                           <div>
-                            <strong className="text-xs font-bold text-gray-900 block">{plan.name}</strong>
-                            <p className="text-[10px] text-emerald-700 font-black mt-1">{formatCurrency(plan.price)} • Qty: {plan.availableQuantity}</p>
+                            <strong className="text-xs font-bold text-ink block">{plan.name}</strong>
+                            <p className="text-[10px] text-neon2 font-black mt-1">{formatCurrency(plan.price)} • Qty: {plan.availableQuantity}</p>
                           </div>
                           <button
                             onClick={() => onDeleteTicketPlan(plan.id)}
-                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"
+                            className="p-1.5 text-danger hover:bg-danger/10 rounded-lg"
                             title="Delete plan"
                           >
                             <Trash2 size={14} />
@@ -409,78 +409,78 @@ export default function AdminDashboard({
 
                 {/* Ticket Form */}
                 <form onSubmit={handleCreateTicketPlan} className="space-y-4 pt-4 border-t">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Add New Ticket Plan</span>
+                  <span className="text-[10px] font-bold text-mut2 uppercase tracking-wider block">Add New Ticket Plan</span>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Plan Class Name</label>
+                      <label className="text-[10px] font-bold text-mut uppercase block mb-1">Plan Class Name</label>
                       <input
                         type="text"
                         required
                         value={planName}
                         onChange={(e) => setPlanName(e.target.value)}
                         placeholder="e.g. Regular Entry, VIP Pass, Couples Desks"
-                        className="w-full bg-gray-50 border border-gray-200 focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-gray-900"
+                        className="w-full bg-abyss2 border border-edge focus:bg-panel rounded-xl px-3.5 py-2.5 text-xs text-ink"
                       />
                     </div>
 
                     <div>
-                      <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Ticket Price (₦)</label>
+                      <label className="text-[10px] font-bold text-mut uppercase block mb-1">Ticket Price (₦)</label>
                       <input
                         type="number"
                         required
                         value={planPrice}
                         onChange={(e) => setPlanPrice(Number(e.target.value))}
-                        className="w-full bg-gray-50 border border-gray-200 focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-mono"
+                        className="w-full bg-abyss2 border border-edge focus:bg-panel rounded-xl px-3.5 py-2.5 text-xs text-ink font-mono"
                       />
                     </div>
 
                     <div>
-                      <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Total Available Quantity</label>
+                      <label className="text-[10px] font-bold text-mut uppercase block mb-1">Total Available Quantity</label>
                       <input
                         type="number"
                         required
                         value={planQty}
                         onChange={(e) => setPlanQty(Number(e.target.value))}
-                        className="w-full bg-gray-50 border border-gray-200 focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-mono"
+                        className="w-full bg-abyss2 border border-edge focus:bg-panel rounded-xl px-3.5 py-2.5 text-xs text-ink font-mono"
                       />
                     </div>
 
                     <div>
-                      <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Max Buy Limit Per Order</label>
+                      <label className="text-[10px] font-bold text-mut uppercase block mb-1">Max Buy Limit Per Order</label>
                       <input
                         type="number"
                         required
                         value={planLimit}
                         onChange={(e) => setPlanLimit(Number(e.target.value))}
-                        className="w-full bg-gray-50 border border-gray-200 focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-mono"
+                        className="w-full bg-abyss2 border border-edge focus:bg-panel rounded-xl px-3.5 py-2.5 text-xs text-ink font-mono"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Ticket Class Description</label>
+                    <label className="text-[10px] font-bold text-mut uppercase block mb-1">Ticket Class Description</label>
                     <textarea
                       rows={2}
                       required
                       value={planDesc}
                       onChange={(e) => setPlanDesc(e.target.value)}
                       placeholder="What does this ticket grant access to?"
-                      className="w-full bg-gray-50 border border-gray-200 focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-gray-900 resize-none"
+                      className="w-full bg-abyss2 border border-edge focus:bg-panel rounded-xl px-3.5 py-2.5 text-xs text-ink resize-none"
                     />
                   </div>
 
                   <div className="flex gap-4">
                     <div>
-                      <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Badge Accent Color</label>
+                      <label className="text-[10px] font-bold text-mut uppercase block mb-1">Badge Accent Color</label>
                       <div className="flex gap-2">
-                        {['#3B82F6', '#8B5CF6', '#F59E0B', '#EF4444', '#EC4899', '#10B981'].map(color => (
+                        {['#48d8ff', '#65f4c3', '#9b8cff', '#ff6f91', '#f4c56a', '#38bdf8'].map(color => (
                           <button
                             key={color}
                             type="button"
                             onClick={() => setPlanColor(color)}
                             className={`w-7 h-7 rounded-lg border transition-all ${
-                              planColor === color ? 'ring-2 ring-gray-900 scale-110' : 'opacity-85'
+                              planColor === color ? 'ring-2 ring-neon scale-110' : 'opacity-85'
                             }`}
                             style={{ backgroundColor: color }}
                           />
@@ -491,14 +491,14 @@ export default function AdminDashboard({
 
                   <button
                     type="submit"
-                    className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    className="w-full bg-abyss hover:bg-abyss2 text-ink font-semibold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <PlusCircle size={15} /> Save & Activate Ticket Class
                   </button>
                 </form>
               </div>
             ) : (
-              <div className="bg-white border border-gray-100 rounded-2xl p-10 text-center text-xs text-gray-400">
+              <div className="bg-panel border border-edge rounded-2xl p-10 text-center text-xs text-mut2">
                 Select an active event from the list on the left to configure ticketing parameters.
               </div>
             )}
@@ -509,18 +509,18 @@ export default function AdminDashboard({
 
       {/* BOOKING VERIFICATION TAB */}
       {activeTab === 'bookings' && (
-        <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-4">
-          <div className="flex justify-between items-center pb-3 border-b border-gray-50">
+        <div className="bg-panel border border-edge rounded-2xl p-5 space-y-4">
+          <div className="flex justify-between items-center pb-3 border-b border-edge/50">
             <div>
-              <h4 className="font-sans font-bold text-sm text-gray-900">Verify Bank Transfer Tickets</h4>
-              <p className="text-xs text-gray-500">Crosscheck transfer receipts on WhatsApp and confirm booking codes</p>
+              <h4 className="font-sans font-bold text-sm text-ink">Verify Bank Transfer Tickets</h4>
+              <p className="text-xs text-mut">Crosscheck transfer receipts on WhatsApp and confirm booking codes</p>
             </div>
-            <span className="text-xs bg-gray-100 px-3 py-1 rounded-md text-gray-500 font-bold">{bookings.length} Bookings</span>
+            <span className="text-xs bg-panel px-3 py-1 rounded-md text-mut font-bold">{bookings.length} Bookings</span>
           </div>
 
           <div className="space-y-4">
             {bookings.length === 0 ? (
-              <div className="text-center py-10 text-xs text-gray-400">
+              <div className="text-center py-10 text-xs text-mut2">
                 No orders placed yet.
               </div>
             ) : (
@@ -531,23 +531,23 @@ export default function AdminDashboard({
                 return (
                   <div
                     key={b.id}
-                    className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4 border rounded-2xl hover:bg-gray-50/50 transition-colors"
+                    className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4 border rounded-2xl hover:bg-abyss2/50 transition-colors"
                   >
                     <div className="space-y-1.5 flex-1">
                       <div className="flex items-center gap-2">
-                        <strong className="text-xs font-mono font-black text-slate-800 bg-slate-100 px-2 py-0.5 rounded-md">{b.bookingReference}</strong>
+                        <strong className="text-xs font-mono font-black text-ink bg-abyss2 px-2 py-0.5 rounded-md">{b.bookingReference}</strong>
                         <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
-                          b.status === 'Confirmed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'
+                          b.status === 'Confirmed' ? 'bg-neon2/10 text-neon2 border-neon2/40' : 'bg-danger/10 text-danger border-danger/35'
                         }`}>
                           {b.status}
                         </span>
                       </div>
                       
-                      <p className="text-xs text-gray-800 font-semibold leading-tight">
+                      <p className="text-xs text-ink font-semibold leading-tight">
                         {associatedEvent?.title || 'Unknown Event'} — {plan?.name || 'Standard Entrance'} ({b.quantity} Tickets)
                       </p>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px] text-gray-500 pt-1.5 border-t border-gray-50">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px] text-mut pt-1.5 border-t border-edge/50">
                         <div>
                           <strong>Buyer:</strong> {b.customerDetails.fullName}
                         </div>
@@ -555,29 +555,29 @@ export default function AdminDashboard({
                           <strong>Phone:</strong> {b.customerDetails.phone}
                         </div>
                         <div>
-                          <strong>Total Transfer:</strong> <span className="font-black text-emerald-700 text-xs font-mono">{formatCurrency(b.totalAmount)}</span>
+                          <strong>Total Transfer:</strong> <span className="font-black text-neon2 text-xs font-mono">{formatCurrency(b.totalAmount)}</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex gap-2 justify-end self-stretch md:self-auto pt-3 md:pt-0 border-t md:border-0 border-gray-50">
+                    <div className="flex gap-2 justify-end self-stretch md:self-auto pt-3 md:pt-0 border-t md:border-0 border-edge/50">
                       {b.status === 'Pending' ? (
                         <>
                           <button
                             onClick={() => onConfirmBooking(b.id)}
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-2 rounded-xl text-[10px] flex items-center gap-1 cursor-pointer transition-colors"
+                            className="bg-neon2 hover:bg-neon2/80 text-ink font-bold px-3 py-2 rounded-xl text-[10px] flex items-center gap-1 cursor-pointer transition-colors"
                           >
                             <Check size={14} /> Confirm Payment
                           </button>
                           <button
                             onClick={() => onCancelBooking(b.id)}
-                            className="bg-red-50 hover:bg-red-100 text-red-700 font-bold px-3 py-2 rounded-xl text-[10px] flex items-center gap-1 cursor-pointer transition-colors"
+                            className="bg-danger/10 hover:bg-danger/15 text-danger font-bold px-3 py-2 rounded-xl text-[10px] flex items-center gap-1 cursor-pointer transition-colors"
                           >
                             <X size={14} /> Decline
                           </button>
                         </>
                       ) : (
-                        <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 border border-emerald-200 rounded-xl flex items-center gap-1 select-none">
+                        <span className="text-[10px] text-neon2 font-bold bg-neon2/10 px-3 py-1.5 border border-neon2/40 rounded-xl flex items-center gap-1 select-none">
                           ✓ Confirmed & Sent
                         </span>
                       )}
@@ -592,24 +592,24 @@ export default function AdminDashboard({
 
       {/* USER DIRECTORIES TAB */}
       {activeTab === 'users' && (
-        <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-4">
-          <div className="pb-2 border-b border-gray-50">
-            <h4 className="font-sans font-bold text-sm text-gray-900">User & Partner Database</h4>
-            <p className="text-xs text-gray-500">Track and manage organizers and registered ticket buyers</p>
+        <div className="bg-panel border border-edge rounded-2xl p-5 space-y-4">
+          <div className="pb-2 border-b border-edge/50">
+            <h4 className="font-sans font-bold text-sm text-ink">User & Partner Database</h4>
+            <p className="text-xs text-mut">Track and manage organizers and registered ticket buyers</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* Organizers */}
-            <div className="border border-gray-100 p-4 rounded-2xl space-y-3">
-              <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md uppercase tracking-wider inline-block">Registered Organizers ({organizers.length})</span>
+            <div className="border border-edge p-4 rounded-2xl space-y-3">
+              <span className="text-[10px] font-bold text-neon bg-neon/10 px-2.5 py-1 rounded-md uppercase tracking-wider inline-block">Registered Organizers ({organizers.length})</span>
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
                 {organizers.map(u => (
-                  <div key={u.id} className="p-3 border rounded-xl bg-gray-50/50 flex items-center gap-3">
+                  <div key={u.id} className="p-3 border rounded-xl bg-abyss2/50 flex items-center gap-3">
                     <img src={u.brandLogo || 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=200'} alt="Logo" className="w-10 h-10 rounded-full object-cover shrink-0" referrerPolicy="no-referrer" />
                     <div>
-                      <strong className="text-xs text-gray-900 block font-sans">{u.businessName || u.fullName}</strong>
-                      <span className="text-[10px] text-gray-500 block">{u.email} • {u.phone}</span>
+                      <strong className="text-xs text-ink block font-sans">{u.businessName || u.fullName}</strong>
+                      <span className="text-[10px] text-mut block">{u.email} • {u.phone}</span>
                     </div>
                   </div>
                 ))}
@@ -617,17 +617,17 @@ export default function AdminDashboard({
             </div>
 
             {/* Buyers */}
-            <div className="border border-gray-100 p-4 rounded-2xl space-y-3">
-              <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md uppercase tracking-wider inline-block">Registered Ticket Buyers ({buyers.length})</span>
+            <div className="border border-edge p-4 rounded-2xl space-y-3">
+              <span className="text-[10px] font-bold text-neon bg-neon/10 px-2.5 py-1 rounded-md uppercase tracking-wider inline-block">Registered Ticket Buyers ({buyers.length})</span>
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
                 {buyers.map(u => (
-                  <div key={u.id} className="p-3 border rounded-xl bg-gray-50/50 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm shrink-0">
+                  <div key={u.id} className="p-3 border rounded-xl bg-abyss2/50 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-neon/15 text-neon flex items-center justify-center font-bold text-sm shrink-0">
                       {u.fullName.charAt(0)}
                     </div>
                     <div>
-                      <strong className="text-xs text-gray-900 block font-sans">{u.fullName}</strong>
-                      <span className="text-[10px] text-gray-500 block">{u.email} • {u.phone}</span>
+                      <strong className="text-xs text-ink block font-sans">{u.fullName}</strong>
+                      <span className="text-[10px] text-mut block">{u.email} • {u.phone}</span>
                     </div>
                   </div>
                 ))}

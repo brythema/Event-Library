@@ -150,12 +150,12 @@ const EVENTS = [
 ];
 
 const PLANS = [
-  { id: 'demo-plan-1a', eventId: 'demo-event-1', name: 'Regular', price: 5000, availableQuantity: 120, maxPurchaseLimit: 6, description: 'General admission with rooftop access', color: '#f59e0b', displayOrder: 1 },
-  { id: 'demo-plan-1b', eventId: 'demo-event-1', name: 'VIP Table', price: 25000, availableQuantity: 15, maxPurchaseLimit: 4, description: 'Reserved table for four, one bottle included', color: '#7c3aed', displayOrder: 2 },
-  { id: 'demo-plan-2a', eventId: 'demo-event-2', name: 'Free Seat', price: 0, availableQuantity: 80, maxPurchaseLimit: 2, description: 'First-come seating, coffee included', color: '#059669', displayOrder: 1 },
-  { id: 'demo-plan-3a', eventId: 'demo-event-3', name: 'Adult', price: 3000, availableQuantity: 300, maxPurchaseLimit: 10, description: 'Single entry, all lawn activities', color: '#f59e0b', displayOrder: 1 },
-  { id: 'demo-plan-3c', eventId: 'demo-event-3', name: 'Family of 4', price: 10000, availableQuantity: 50, maxPurchaseLimit: 2, description: 'Two adults, two children', color: '#dc2626', displayOrder: 2 },
-  { id: 'demo-plan-4a', eventId: 'demo-event-4', name: 'Bootcamp Pass', price: 15000, availableQuantity: 40, maxPurchaseLimit: 3, description: 'Both days, lunch and certificate', color: '#2563eb', displayOrder: 1 },
+  { id: 'demo-plan-1a', eventId: 'demo-event-1', name: 'Regular', price: 5000, availableQuantity: 120, maxPurchaseLimit: 6, description: 'General admission with rooftop access', color: '#48d8ff', displayOrder: 1 },
+  { id: 'demo-plan-1b', eventId: 'demo-event-1', name: 'VIP Table', price: 25000, availableQuantity: 15, maxPurchaseLimit: 4, description: 'Reserved table for four, one bottle included', color: '#65f4c3', displayOrder: 2 },
+  { id: 'demo-plan-2a', eventId: 'demo-event-2', name: 'Free Seat', price: 0, availableQuantity: 80, maxPurchaseLimit: 2, description: 'First-come seating, coffee included', color: '#9b8cff', displayOrder: 1 },
+  { id: 'demo-plan-3a', eventId: 'demo-event-3', name: 'Adult', price: 3000, availableQuantity: 300, maxPurchaseLimit: 10, description: 'Single entry, all lawn activities', color: '#48d8ff', displayOrder: 1 },
+  { id: 'demo-plan-3c', eventId: 'demo-event-3', name: 'Family of 4', price: 10000, availableQuantity: 50, maxPurchaseLimit: 2, description: 'Two adults, two children', color: '#ff6f91', displayOrder: 2 },
+  { id: 'demo-plan-4a', eventId: 'demo-event-4', name: 'Bootcamp Pass', price: 15000, availableQuantity: 40, maxPurchaseLimit: 3, description: 'Both days, lunch and certificate', color: '#38bdf8', displayOrder: 1 },
 ];
 
 for (const ev of EVENTS) {

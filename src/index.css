@@ -1,1 +1,67 @@
 @import "tailwindcss";
+
+/* ── E³ brand reskin (blue / white / black, neon) ─────────────────────
+   Abuja Events is themed to the E³ identity: deep blue-black canvas,
+   white ink, neon-blue primary accent, neon-mint secondary. The token
+   names below are the ONLY palette the components should use; the old
+   Tailwind amber/gray classes are remapped to these. */
+@theme {
+  /* canvas + surfaces */
+  --color-abyss:  #06101a; /* page / darkest */
+  --color-abyss2: #0b1726; /* page raised */
+  --color-panel:  #0f1d2d; /* card surface */
+  --color-panel2: #12243a; /* card surface raised */
+  --color-navy:   #0d2438; /* filled brand panel (ex-amber-600 hero) */
+
+  /* ink */
+  --color-ink:   #f4f7fb; /* primary text (white) */
+  --color-mut:   #99a9bd; /* secondary text */
+  --color-mut2:  #6f8097; /* tertiary / placeholder */
+
+  /* structure */
+  --color-edge:  #22384c; /* hairline border */
+
+  /* E³ accents */
+  --color-neon:   #48d8ff; /* primary — E³ neon blue */
+  --color-neon2:  #65f4c3; /* secondary — E³ neon mint */
+  --color-danger: #ff6f91; /* errors / destructive */
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-abyss);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* E³ neon selection */
+::selection {
+  background: color-mix(in srgb, var(--color-neon) 32%, transparent);
+  color: var(--color-ink);
+}
+
+/* dark, thin scrollbars to match the canvas */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-edge) transparent;
+}
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-edge);
+  border-radius: 99px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* neon focus ring replaces the old amber one, globally for form controls */
+:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-neon) 70%, transparent);
+  outline-offset: 2px;
+}

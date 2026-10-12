@@ -431,13 +431,13 @@ export default function App() {
     selectedTimeOfDay !== 'All';
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col font-sans selection:bg-amber-600 selection:text-white">
+    <div className="min-h-screen bg-abyss2 flex flex-col font-sans selection:bg-navy selection:text-ink">
       
       {/* Toast Feedback */}
       {toast && (
         <div className={`fixed bottom-6 right-6 z-50 p-4 rounded-2xl shadow-2xl flex items-center gap-3 border animate-slide-up ${
-          toast.type === 'success' ? 'bg-emerald-950 text-emerald-100 border-emerald-800' :
-          toast.type === 'error' ? 'bg-red-950 text-red-100 border-red-800' : 'bg-slate-900 text-slate-100 border-slate-800'
+          toast.type === 'success' ? 'bg-neon2/30 text-neon2 border-neon2/50' :
+          toast.type === 'error' ? 'bg-danger/25 text-danger border-danger/40' : 'bg-abyss text-ink border-edge'
         }`}>
           <span className="text-sm font-semibold">{toast.message}</span>
         </div>
@@ -491,7 +491,7 @@ export default function App() {
               <div className="space-y-12">
                 
                 {/* HERO SEARCH & FILTERS PANEL */}
-                <div className="relative rounded-3xl bg-amber-600 p-6 sm:p-10 text-white overflow-hidden shadow-xl shadow-amber-600/10">
+                <div className="relative rounded-3xl bg-navy p-6 sm:p-10 text-ink overflow-hidden shadow-xl shadow-neon/20">
                   {/* Subtle graphical background accents */}
                   <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none"></div>
                   
@@ -502,27 +502,27 @@ export default function App() {
                     <h2 className="font-sans font-black text-2xl sm:text-4xl tracking-tight leading-tight">
                       Find spectacular happenings in Abuja.
                     </h2>
-                    <p className="text-amber-100 text-xs sm:text-sm">
+                    <p className="text-mut text-xs sm:text-sm">
                       Centralized discovery platform verified by city authorities. Search events, dates, areas, and ticket classes seamlessly.
                     </p>
 
                     {/* Integrated search form */}
                     <div className="flex flex-col sm:flex-row gap-2.5 pt-4">
                       <div className="relative flex-1">
-                        <Search className="absolute left-3.5 top-3.5 text-gray-400" size={18} />
+                        <Search className="absolute left-3.5 top-3.5 text-mut2" size={18} />
                         <input
                           type="text"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           placeholder="Search title, tags, description, venue, or organizer..."
-                          className="w-full bg-white text-gray-900 placeholder:text-gray-400 rounded-xl pl-11 pr-4 py-3.5 text-xs outline-hidden shadow-xs border-0 focus:ring-2 focus:ring-amber-500 font-semibold"
+                          className="w-full bg-panel text-ink placeholder:text-mut2 rounded-xl pl-11 pr-4 py-3.5 text-xs outline-hidden shadow-xs border-0 focus:ring-2 focus:ring-neon font-semibold"
                         />
                       </div>
                       
                       <button
                         onClick={handleFindNearMe}
                         className={`px-4 py-3.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs whitespace-nowrap ${
-                          isNearMeActive ? 'bg-emerald-800 text-white animate-pulse' : 'bg-white text-amber-900 hover:bg-amber-50'
+                          isNearMeActive ? 'bg-neon2/60 text-ink animate-pulse' : 'bg-panel text-neon hover:bg-neon/10'
                         }`}
                       >
                         <MapPin size={14} /> {isNearMeActive ? '📍 Location Active' : '📍 Near Me'}
@@ -531,7 +531,7 @@ export default function App() {
                       <button
                         onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                         className={`px-4 py-3.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs ${
-                          showAdvancedFilters || isFiltersActive ? 'bg-amber-950 text-white' : 'bg-white/15 text-white hover:bg-white/20'
+                          showAdvancedFilters || isFiltersActive ? 'bg-abyss text-ink' : 'bg-white/15 text-ink hover:bg-white/20'
                         }`}
                       >
                         <SlidersHorizontal size={14} /> Filter Settings
@@ -544,71 +544,71 @@ export default function App() {
                     <div className="relative z-10 bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/15 mt-6 grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
                       {/* Category select */}
                       <div>
-                        <label className="text-[10px] font-bold text-amber-100 uppercase block mb-1.5">Category</label>
+                        <label className="text-[10px] font-bold text-mut uppercase block mb-1.5">Category</label>
                         <select
                           value={selectedCategory}
                           onChange={(e) => setSelectedCategory(e.target.value)}
-                          className="w-full bg-white/15 hover:bg-white/25 border-0 rounded-xl px-3 py-2 text-xs font-semibold text-white outline-hidden cursor-pointer"
+                          className="w-full bg-white/15 hover:bg-white/25 border-0 rounded-xl px-3 py-2 text-xs font-semibold text-ink outline-hidden cursor-pointer"
                         >
-                          <option value="All" className="text-gray-900">All Categories</option>
+                          <option value="All" className="text-ink">All Categories</option>
                           {EVENT_CATEGORIES.map(c => (
-                            <option key={c} value={c} className="text-gray-900">{c}</option>
+                            <option key={c} value={c} className="text-ink">{c}</option>
                           ))}
                         </select>
                       </div>
 
                       {/* District Area select */}
                       <div>
-                        <label className="text-[10px] font-bold text-amber-100 uppercase block mb-1.5">Abuja District</label>
+                        <label className="text-[10px] font-bold text-mut uppercase block mb-1.5">Abuja District</label>
                         <select
                           value={selectedArea}
                           onChange={(e) => setSelectedArea(e.target.value)}
-                          className="w-full bg-white/15 hover:bg-white/25 border-0 rounded-xl px-3 py-2 text-xs font-semibold text-white outline-hidden cursor-pointer"
+                          className="w-full bg-white/15 hover:bg-white/25 border-0 rounded-xl px-3 py-2 text-xs font-semibold text-ink outline-hidden cursor-pointer"
                         >
-                          <option value="All" className="text-gray-900">All Districts</option>
+                          <option value="All" className="text-ink">All Districts</option>
                           {ABUJA_AREAS.map(a => (
-                            <option key={a} value={a} className="text-gray-900">{a}</option>
+                            <option key={a} value={a} className="text-ink">{a}</option>
                           ))}
                         </select>
                       </div>
 
                       {/* Date selection */}
                       <div>
-                        <label className="text-[10px] font-bold text-amber-100 uppercase block mb-1.5">Event Date</label>
+                        <label className="text-[10px] font-bold text-mut uppercase block mb-1.5">Event Date</label>
                         <input
                           type="date"
                           value={selectedDate}
                           onChange={(e) => setSelectedDate(e.target.value)}
-                          className="w-full bg-white/15 hover:bg-white/25 border-0 rounded-xl px-3 py-2 text-xs font-semibold text-white outline-hidden cursor-pointer placeholder-white"
+                          className="w-full bg-white/15 hover:bg-white/25 border-0 rounded-xl px-3 py-2 text-xs font-semibold text-ink outline-hidden cursor-pointer placeholder-mut2"
                         />
                       </div>
 
                       {/* Paid vs Free selection */}
                       <div>
-                        <label className="text-[10px] font-bold text-amber-100 uppercase block mb-1.5">Ticket Pricing</label>
+                        <label className="text-[10px] font-bold text-mut uppercase block mb-1.5">Ticket Pricing</label>
                         <select
                           value={selectedPriceType}
                           onChange={(e) => setSelectedPriceType(e.target.value as any)}
-                          className="w-full bg-white/15 hover:bg-white/25 border-0 rounded-xl px-3 py-2 text-xs font-semibold text-white outline-hidden cursor-pointer"
+                          className="w-full bg-white/15 hover:bg-white/25 border-0 rounded-xl px-3 py-2 text-xs font-semibold text-ink outline-hidden cursor-pointer"
                         >
-                          <option value="All" className="text-gray-900">All Price Types</option>
-                          <option value="Free" className="text-gray-900">Free Events</option>
-                          <option value="Paid" className="text-gray-900">Paid Ticket Plans</option>
+                          <option value="All" className="text-ink">All Price Types</option>
+                          <option value="Free" className="text-ink">Free Events</option>
+                          <option value="Paid" className="text-ink">Paid Ticket Plans</option>
                         </select>
                       </div>
 
                       {/* Time of Day selection */}
                       <div>
-                        <label className="text-[10px] font-bold text-amber-100 uppercase block mb-1.5">Time of Day</label>
+                        <label className="text-[10px] font-bold text-mut uppercase block mb-1.5">Time of Day</label>
                         <select
                           value={selectedTimeOfDay}
                           onChange={(e) => setSelectedTimeOfDay(e.target.value as any)}
-                          className="w-full bg-white/15 hover:bg-white/25 border-0 rounded-xl px-3 py-2 text-xs font-semibold text-white outline-hidden cursor-pointer"
+                          className="w-full bg-white/15 hover:bg-white/25 border-0 rounded-xl px-3 py-2 text-xs font-semibold text-ink outline-hidden cursor-pointer"
                         >
-                          <option value="All" className="text-gray-900">Any Time</option>
-                          <option value="Morning" className="text-gray-900">Morning (05:00 - 12:00)</option>
-                          <option value="Afternoon" className="text-gray-900">Afternoon (12:00 - 17:00)</option>
-                          <option value="Evening" className="text-gray-900">Evening (17:00 - 05:00)</option>
+                          <option value="All" className="text-ink">Any Time</option>
+                          <option value="Morning" className="text-ink">Morning (05:00 - 12:00)</option>
+                          <option value="Afternoon" className="text-ink">Afternoon (12:00 - 17:00)</option>
+                          <option value="Evening" className="text-ink">Evening (17:00 - 05:00)</option>
                         </select>
                       </div>
 
@@ -616,7 +616,7 @@ export default function App() {
                       <div className="sm:col-span-4 flex justify-end gap-2 border-t border-white/10 pt-4 mt-1">
                         <button
                           onClick={handleClearFilters}
-                          className="px-4 py-2 bg-amber-950 hover:bg-amber-900 rounded-xl text-[10px] font-bold uppercase tracking-wider cursor-pointer text-white"
+                          className="px-4 py-2 bg-abyss hover:bg-abyss rounded-xl text-[10px] font-bold uppercase tracking-wider cursor-pointer text-ink"
                         >
                           Clear All Filters
                         </button>
@@ -626,12 +626,12 @@ export default function App() {
                 </div>
 
                 {isNearMeActive && userLocation && (
-                  <div className="bg-emerald-50 border border-emerald-200 text-emerald-950 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+                  <div className="bg-neon2/10 border border-neon2/40 text-neon2 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
                     <div className="flex items-center gap-3">
                       <span className="text-xl">📍</span>
                       <div>
-                        <p className="text-xs font-black text-emerald-900">Location Discovery Active</p>
-                        <p className="text-[11px] text-emerald-700">
+                        <p className="text-xs font-black text-neon2">Location Discovery Active</p>
+                        <p className="text-[11px] text-neon2">
                           Verified events are sorted by proximity to your coordinates, and the web around <strong>{discoveredArea || 'your area'}</strong> is being scanned below. Highlighted distances show how close events are to you.
                         </p>
                       </div>
@@ -643,7 +643,7 @@ export default function App() {
                         setDiscoveredEvents([]);
                         triggerToast('Location awareness deactivated.', 'info');
                       }}
-                      className="text-xs font-extrabold text-emerald-800 hover:text-emerald-950 px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 rounded-xl whitespace-nowrap cursor-pointer"
+                      className="text-xs font-extrabold text-neon2 hover:text-neon2 px-3 py-1.5 bg-neon2/15 hover:bg-neon2/25 rounded-xl whitespace-nowrap cursor-pointer"
                     >
                       Disable Proximity Sort
                     </button>
@@ -653,25 +653,25 @@ export default function App() {
                 {/* DYNAMIC RESULTS VIEW VS GENERAL MAGAZINE */}
                 {isFiltersActive ? (
                   <div className="space-y-6">
-                    <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                    <div className="flex justify-between items-center border-b border-edge pb-3">
                       <div>
-                        <h3 className="font-sans font-black text-xl text-gray-900">Search & Filter Results</h3>
-                        <p className="text-xs text-gray-500 mt-1">Found <strong>{filteredEvents.length} events</strong> based on active filters.</p>
+                        <h3 className="font-sans font-black text-xl text-ink">Search & Filter Results</h3>
+                        <p className="text-xs text-mut mt-1">Found <strong>{filteredEvents.length} events</strong> based on active filters.</p>
                       </div>
                       <button
                         onClick={handleClearFilters}
-                        className="text-xs text-amber-600 hover:text-amber-800 font-bold"
+                        className="text-xs text-neon hover:text-neon font-bold"
                       >
                         Reset filters
                       </button>
                     </div>
 
                     {displayFilteredEvents.length === 0 ? (
-                      <div className="text-center py-20 bg-white border rounded-3xl space-y-4">
+                      <div className="text-center py-20 bg-panel border rounded-3xl space-y-4">
                         <span className="text-4xl block">🔍</span>
-                        <h4 className="font-bold text-gray-800">No events found matching filters</h4>
-                        <p className="text-xs text-gray-400 max-w-sm mx-auto">Try widening your search terms, removing dates, or expanding district boundaries.</p>
-                        <button onClick={handleClearFilters} className="bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold px-4 py-2 rounded-xl">Clear filters</button>
+                        <h4 className="font-bold text-ink">No events found matching filters</h4>
+                        <p className="text-xs text-mut2 max-w-sm mx-auto">Try widening your search terms, removing dates, or expanding district boundaries.</p>
+                        <button onClick={handleClearFilters} className="bg-neon/10 border border-neon/40 text-neon text-xs font-semibold px-4 py-2 rounded-xl">Clear filters</button>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -698,10 +698,10 @@ export default function App() {
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
                           <div>
-                            <h3 className="font-sans font-black text-xl text-gray-950 flex items-center gap-1.5">
+                            <h3 className="font-sans font-black text-xl text-ink flex items-center gap-1.5">
                               ⭐ Featured Spotlights
                             </h3>
-                            <p className="text-xs text-gray-500">Premium city experiences selected by administrators</p>
+                            <p className="text-xs text-mut">Premium city experiences selected by administrators</p>
                           </div>
                         </div>
 
@@ -727,11 +727,11 @@ export default function App() {
                     {todaysList.length > 0 && (
                       <div className="space-y-4">
                         <div>
-                          <h3 className="font-sans font-black text-xl text-gray-950 flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse"></span>
+                          <h3 className="font-sans font-black text-xl text-ink flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-danger animate-pulse"></span>
                             Happening Today
                           </h3>
-                          <p className="text-xs text-gray-500">Events scheduled for today, {new Date().toLocaleDateString('en-NG', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                          <p className="text-xs text-mut">Events scheduled for today, {new Date().toLocaleDateString('en-NG', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
                         </div>
 
                         <div className="flex overflow-x-auto gap-6 pb-4 scrollbar-none snap-x select-none">
@@ -755,10 +755,10 @@ export default function App() {
                     {tomorrowsList.length > 0 && (
                       <div className="space-y-4">
                         <div>
-                          <h3 className="font-sans font-black text-xl text-gray-950">
+                          <h3 className="font-sans font-black text-xl text-ink">
                             Tomorrow's Agenda
                           </h3>
-                          <p className="text-xs text-gray-500">Clear your schedules for tomorrow's verified line-up</p>
+                          <p className="text-xs text-mut">Clear your schedules for tomorrow's verified line-up</p>
                         </div>
 
                         <div className="flex overflow-x-auto gap-6 pb-4 scrollbar-none snap-x select-none">
@@ -782,10 +782,10 @@ export default function App() {
                     {weekendsList.length > 0 && (
                       <div className="space-y-4">
                         <div>
-                          <h3 className="font-sans font-black text-xl text-gray-950">
+                          <h3 className="font-sans font-black text-xl text-ink">
                             Weekend Planners
                           </h3>
-                          <p className="text-xs text-gray-500">Upcoming weekend events (Fri July 10 to Sun July 12)</p>
+                          <p className="text-xs text-mut">Upcoming weekend events (Fri July 10 to Sun July 12)</p>
                         </div>
 
                         <div className="flex overflow-x-auto gap-6 pb-4 scrollbar-none snap-x select-none">
@@ -809,10 +809,10 @@ export default function App() {
                     {recentlyAddedList.length > 0 && (
                       <div className="space-y-4">
                         <div>
-                          <h3 className="font-sans font-black text-xl text-gray-950">
+                          <h3 className="font-sans font-black text-xl text-ink">
                             Recently Added listings
                           </h3>
-                          <p className="text-xs text-gray-500">Be the first to secure early bird slots for newly announced items</p>
+                          <p className="text-xs text-mut">Be the first to secure early bird slots for newly announced items</p>
                         </div>
 
                         <div className="flex overflow-x-auto gap-6 pb-4 scrollbar-none snap-x select-none">
@@ -836,15 +836,15 @@ export default function App() {
                         Verified in-house listings above always come first;
                         web finds are clearly UNVERIFIED and link to sources. */}
                     {isNearMeActive && (
-                      <div className="space-y-4 border-t border-gray-100 pt-8">
+                      <div className="space-y-4 border-t border-edge pt-8">
                         <div>
-                          <h3 className="font-sans font-black text-xl text-gray-950 flex items-center gap-2">
+                          <h3 className="font-sans font-black text-xl text-ink flex items-center gap-2">
                             🌐 Found on the web
-                            <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase border border-amber-200">
+                            <span className="inline-flex items-center gap-1 bg-neon/10 text-neon px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase border border-neon/40">
                               Unverified
                             </span>
                           </h3>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-mut">
                             {isDiscovering
                               ? `Searching public event pages around ${discoveredArea || 'your area'}…`
                               : discoveredEvents.length > 0
@@ -854,9 +854,9 @@ export default function App() {
                         </div>
 
                         {isDiscovering ? (
-                          <div className="bg-white border border-dashed border-gray-200 rounded-2xl p-8 text-center">
-                            <span className="inline-block w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin"></span>
-                            <p className="text-xs text-gray-500 mt-3">Scanning ticketing platforms, venue pages and public listings…</p>
+                          <div className="bg-panel border border-dashed border-edge rounded-2xl p-8 text-center">
+                            <span className="inline-block w-6 h-6 border-2 border-neon border-t-transparent rounded-full animate-spin"></span>
+                            <p className="text-xs text-mut mt-3">Scanning ticketing platforms, venue pages and public listings…</p>
                           </div>
                         ) : discoveredEvents.length > 0 ? (
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -876,12 +876,12 @@ export default function App() {
                     )}
 
                     {/* BROWSE BY CATEGORY */}
-                    <div className="bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 space-y-6">
+                    <div className="bg-panel border border-edge rounded-3xl p-6 sm:p-8 space-y-6">
                       <div>
-                        <h4 className="font-sans font-black text-base text-gray-950">
+                        <h4 className="font-sans font-black text-base text-ink">
                           Browse By Experience Category
                         </h4>
-                        <p className="text-xs text-gray-500">Narrow down experiences using specific category fields</p>
+                        <p className="text-xs text-mut">Narrow down experiences using specific category fields</p>
                       </div>
 
                       <div className="flex flex-wrap gap-2.5">
@@ -893,7 +893,7 @@ export default function App() {
                               setShowAdvancedFilters(true);
                               window.scrollTo({ top: 300, behavior: 'smooth' });
                             }}
-                            className="bg-gray-50 hover:bg-amber-50 border border-gray-100 hover:border-amber-200 text-gray-800 hover:text-amber-700 px-4 py-2.5 rounded-xl text-xs font-semibold cursor-pointer transition-colors"
+                            className="bg-abyss2 hover:bg-neon/10 border border-edge hover:border-neon/40 text-ink hover:text-neon px-4 py-2.5 rounded-xl text-xs font-semibold cursor-pointer transition-colors"
                           >
                             {cat}
                           </button>
@@ -902,12 +902,12 @@ export default function App() {
                     </div>
 
                     {/* BROWSE BY AREA */}
-                    <div className="bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 space-y-6">
+                    <div className="bg-panel border border-edge rounded-3xl p-6 sm:p-8 space-y-6">
                       <div>
-                        <h4 className="font-sans font-black text-base text-gray-950">
+                        <h4 className="font-sans font-black text-base text-ink">
                           Explore Abuja Areas & Districts
                         </h4>
-                        <p className="text-xs text-gray-500">Discover events within walking distance in your district</p>
+                        <p className="text-xs text-mut">Discover events within walking distance in your district</p>
                       </div>
 
                       <div className="flex flex-wrap gap-2.5">
@@ -919,7 +919,7 @@ export default function App() {
                               setShowAdvancedFilters(true);
                               window.scrollTo({ top: 300, behavior: 'smooth' });
                             }}
-                            className="bg-gray-50 hover:bg-amber-50 border border-gray-100 hover:border-amber-200 text-gray-800 hover:text-amber-700 px-4 py-2.5 rounded-xl text-xs font-semibold cursor-pointer transition-colors flex items-center gap-1"
+                            className="bg-abyss2 hover:bg-neon/10 border border-edge hover:border-neon/40 text-ink hover:text-neon px-4 py-2.5 rounded-xl text-xs font-semibold cursor-pointer transition-colors flex items-center gap-1"
                           >
                             📍 {area}
                           </button>
@@ -941,10 +941,10 @@ export default function App() {
                   onCancel={() => setView('home')}
                 />
               ) : (
-                <div className="max-w-md mx-auto text-center py-16 space-y-6 bg-white border border-gray-100 rounded-3xl shadow-xs p-6">
+                <div className="max-w-md mx-auto text-center py-16 space-y-6 bg-panel border border-edge rounded-3xl shadow-xs p-6">
                   <span className="text-4xl block">🔑</span>
-                  <h3 className="font-sans font-black text-lg text-gray-900">Organizer Login Required</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">
+                  <h3 className="font-sans font-black text-lg text-ink">Organizer Login Required</h3>
+                  <p className="text-xs text-mut leading-relaxed">
                     You must register or log in as an organizer to design, save, and submit event landing pages.
                   </p>
                   <button
@@ -952,7 +952,7 @@ export default function App() {
                       setAuthModalTab('Organizer');
                       setIsAuthModalOpen(true);
                     }}
-                    className="bg-amber-600 hover:bg-amber-700 text-white font-semibold py-3 px-6 rounded-xl text-xs transition-colors cursor-pointer"
+                    className="bg-navy hover:bg-navy text-ink font-semibold py-3 px-6 rounded-xl text-xs transition-colors cursor-pointer"
                   >
                     Login to Organizer Portal
                   </button>
@@ -1012,27 +1012,27 @@ export default function App() {
               <div className="max-w-4xl mx-auto space-y-12 animate-fade-in">
                 {/* Visual Intro */}
                 <div className="text-center space-y-4 max-w-2xl mx-auto pt-4">
-                  <span className="text-[10px] font-bold tracking-wider uppercase text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md">
+                  <span className="text-[10px] font-bold tracking-wider uppercase text-neon bg-neon/10 px-2.5 py-1 rounded-md">
                     About Platform
                   </span>
-                  <h2 className="font-sans font-black text-3xl text-gray-900 tracking-tight leading-tight">
+                  <h2 className="font-sans font-black text-3xl text-ink tracking-tight leading-tight">
                     Every event deserves a beautiful landing page.
                   </h2>
-                  <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-mut leading-relaxed">
                     The Abuja Events Platform is the capital's centralized discovery and anti-scam ticketing interface. We facilitate transparent event listings and secure seat placements.
                   </p>
                 </div>
 
                 {/* Grid info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
-                  <div className="bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 space-y-4">
-                    <h3 className="font-sans font-bold text-base text-gray-950 pb-2 border-b border-gray-50">
+                  <div className="bg-panel border border-edge rounded-3xl p-6 sm:p-8 space-y-4">
+                    <h3 className="font-sans font-bold text-base text-ink pb-2 border-b border-edge/50">
                       Our Philosophy
                     </h3>
-                    <p className="text-xs text-gray-600 leading-relaxed">
+                    <p className="text-xs text-mut leading-relaxed">
                       Traditional ticketing platforms confuse users and charge heavy processing percentages. Abuja Events decouples publishing from payment. Any organizer can submit. Only city platform administrators can activate payment modules.
                     </p>
-                    <p className="text-xs text-gray-600 leading-relaxed">
+                    <p className="text-xs text-mut leading-relaxed">
                       This quality check eliminates ticketing scams, double entries, and guarantees that every attendee receives valid vector passes confirmed by physical bank transfers.
                     </p>
                   </div>
@@ -1044,30 +1044,30 @@ export default function App() {
                       triggerToast('Contact request submitted! Our administrators will reach out via WhatsApp shortly.', 'success');
                       e.currentTarget.reset();
                     }}
-                    className="bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 space-y-4"
+                    className="bg-panel border border-edge rounded-3xl p-6 sm:p-8 space-y-4"
                   >
-                    <h3 className="font-sans font-bold text-base text-gray-950 pb-2 border-b border-gray-50">
+                    <h3 className="font-sans font-bold text-base text-ink pb-2 border-b border-edge/50">
                       Reach Out To Admin Office
                     </h3>
 
                     <div className="space-y-3">
                       <div>
-                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Your Full Name</label>
-                        <input type="text" required placeholder="Chidi Okafor" className="w-full bg-gray-50 border rounded-xl px-3 py-2 text-xs text-gray-900 outline-hidden" />
+                        <label className="text-[10px] font-bold text-mut2 uppercase block mb-1">Your Full Name</label>
+                        <input type="text" required placeholder="Chidi Okafor" className="w-full bg-abyss2 border rounded-xl px-3 py-2 text-xs text-ink outline-hidden" />
                       </div>
                       <div>
-                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Your WhatsApp Number</label>
-                        <input type="tel" required placeholder="+234 800..." className="w-full bg-gray-50 border rounded-xl px-3 py-2 text-xs text-gray-900 outline-hidden" />
+                        <label className="text-[10px] font-bold text-mut2 uppercase block mb-1">Your WhatsApp Number</label>
+                        <input type="tel" required placeholder="+234 800..." className="w-full bg-abyss2 border rounded-xl px-3 py-2 text-xs text-ink outline-hidden" />
                       </div>
                       <div>
-                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Your Query / Inquiry</label>
-                        <textarea rows={3} required placeholder="State your ticket plan or sponsorship goals..." className="w-full bg-gray-50 border rounded-xl px-3 py-2 text-xs text-gray-900 outline-hidden resize-none" />
+                        <label className="text-[10px] font-bold text-mut2 uppercase block mb-1">Your Query / Inquiry</label>
+                        <textarea rows={3} required placeholder="State your ticket plan or sponsorship goals..." className="w-full bg-abyss2 border rounded-xl px-3 py-2 text-xs text-ink outline-hidden resize-none" />
                       </div>
                     </div>
 
                     <button
                       type="submit"
-                      className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-3 rounded-xl text-xs transition-colors cursor-pointer"
+                      className="w-full bg-navy hover:bg-navy text-ink font-semibold py-3 rounded-xl text-xs transition-colors cursor-pointer"
                     >
                       Submit inquiry message
                     </button>
@@ -1082,19 +1082,31 @@ export default function App() {
       </main>
 
       {/* FOOTER */}
-      <footer className="bg-white border-t border-gray-100 mt-20">
+      <footer className="bg-panel border-t border-edge mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 text-center space-y-4">
-          <div className="flex justify-center items-center gap-2 text-gray-700 font-sans font-bold text-sm">
-            <span className="w-6 h-6 rounded-lg bg-amber-600 text-white flex items-center justify-center font-sans font-black text-xs">
+          <div className="flex justify-center items-center gap-2 text-ink font-sans font-bold text-sm">
+            <span className="w-6 h-6 rounded-lg bg-neon text-abyss flex items-center justify-center font-sans font-black text-xs">
               A
             </span>
             Abuja Events Platform
           </div>
-          <p className="text-[11px] text-gray-400 max-w-md mx-auto leading-relaxed">
+          <p className="text-[11px] text-mut2 max-w-md mx-auto leading-relaxed">
             All ticket payments are verified relationally by central administrators. Offline bank transfers are backed 100% by digital seat reserves.
           </p>
-          <div className="text-[10px] text-gray-400 pt-3 border-t">
+          <div className="text-[10px] text-mut2 pt-3 border-t">
             © 2026 Abuja Events Platform. Designed for the Federal Capital Territory, Abuja.
+          </div>
+          <div className="text-[11px] text-mut2">
+            Created by{' '}
+            <a
+              href="https://e3-website-hemabryt.vercel.app"
+              target="_blank"
+              rel="noreferrer"
+              className="text-neon font-bold hover:underline"
+            >
+              E³
+            </a>{' '}
+            · Encourage Excellence Early
           </div>
         </div>
       </footer>

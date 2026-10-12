@@ -197,7 +197,7 @@ try {
     const plan = await patchDoc(`ticketPlans/${FIXTURE_PLAN}`, {
       eventId: FIXTURE_EVENT, name: 'Smoke Class', price: 1500,
       availableQuantity: 2, maxPurchaseLimit: 5, description: '',
-      color: '#000000', displayOrder: 1
+      color: '#48d8ff', displayOrder: 1
     }, adminToken);
     report('admin-written fixture (event + plan)', ev.status === 200 && plan.status === 200, `event ${ev.status}, plan ${plan.status}`);
   }
