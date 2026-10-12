@@ -9,9 +9,9 @@ import {
   Clock, Sparkles, Phone, Mail, Instagram, Facebook, Globe, MessageCircle, X
 } from 'lucide-react';
 
-import { AbujaEvent, EventStatus, TicketPlan, User, Booking, Notification } from './types';
+import { AbujaEvent, EventStatus, TicketPlan, User, Booking, Notification, DiscoveredEvent } from './types';
 import { ABUJA_AREAS, EVENT_CATEGORIES } from './initialData';
-import { isToday, isTomorrow, isThisWeekend, isUpcoming, formatCurrency, getDistanceInKm, AREA_COORDINATES } from './utils';
+import { isToday, isTomorrow, isThisWeekend, isUpcoming, formatCurrency, getDistanceInKm, AREA_COORDINATES, nearestArea } from './utils';
 import { onAuthUser, signOut as signOutUser } from './services/auth';
 import {
   subscribeEvents, subscribeTicketPlans, subscribeBookings, subscribeNotifications, subscribeUsers,
@@ -31,6 +31,8 @@ import OrganizerDashboard from './components/OrganizerDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import BuyerDashboard from './components/BuyerDashboard';
 import AuthModal from './components/AuthModal';
+import DiscoveredCard from './components/DiscoveredCard';
+import { discoverWebEvents } from './services/discover';
 
 export default function App() {
   // Core Application State
@@ -57,6 +59,9 @@ export default function App() {
   // Location-awareness states
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isNearMeActive, setIsNearMeActive] = useState(false);
+  const [discoveredEvents, setDiscoveredEvents] = useState<DiscoveredEvent[]>([]);
+  const [discoveredArea, setDiscoveredArea] = useState('');
+  const [isDiscovering, setIsDiscovering] = useState(false);
 
   // Authentication Modal Trigger State
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -264,37 +269,52 @@ export default function App() {
   };
 
   // Location-awareness triggers and calculations
+  /* Web discovery runs against the resolved area and is fully non-fatal:
+     the verified in-house listing is the product, web results are a bonus. */
+  const runDiscovery = async (area: string) => {
+    setDiscoveredArea(area);
+    setIsDiscovering(true);
+    try {
+      const results = await discoverWebEvents(area);
+      setDiscoveredEvents(results);
+    } catch (error) {
+      setDiscoveredEvents([]);
+      triggerToast((error as Error).message || 'The web search is unavailable right now.', 'info');
+    } finally {
+      setIsDiscovering(false);
+    }
+  };
+
   const handleFindNearMe = () => {
     if (isNearMeActive) {
       setIsNearMeActive(false);
       setUserLocation(null);
+      setDiscoveredEvents([]);
       triggerToast('Location awareness deactivated.', 'info');
       return;
     }
 
     triggerToast('Requesting your coordinates...', 'info');
+    const activate = (lat: number, lng: number, note: string) => {
+      setUserLocation({ lat, lng });
+      setIsNearMeActive(true);
+      const resolved = nearestArea(lat, lng);
+      triggerToast(`📍 ${note} Sorted closest to farthest — searching the web around ${resolved.area}…`, 'success');
+      runDiscovery(resolved.area);
+    };
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          setUserLocation({ lat, lng });
-          setIsNearMeActive(true);
-          triggerToast('📍 Location access granted! Events sorted closest to farthest.', 'success');
-        },
+        (position) => activate(position.coords.latitude, position.coords.longitude, 'Location access granted!'),
         (error) => {
           console.warn('Geolocation error:', error);
           // Fallback: Using Abuja Central Business District as central coordinates
-          setUserLocation({ lat: 9.0556, lng: 7.4917 });
-          setIsNearMeActive(true);
-          triggerToast('📍 Geolocation permission blocked. Simulating from Abuja CBD!', 'info');
+          activate(9.0556, 7.4917, 'Geolocation blocked — using Abuja CBD.');
         },
         { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
       );
     } else {
-      setUserLocation({ lat: 9.0556, lng: 7.4917 });
-      setIsNearMeActive(true);
-      triggerToast('📍 Geolocation not supported. Simulating from Abuja CBD!', 'info');
+      activate(9.0556, 7.4917, 'Geolocation not supported — using Abuja CBD.');
     }
   };
 
@@ -612,7 +632,7 @@ export default function App() {
                       <div>
                         <p className="text-xs font-black text-emerald-900">Location Discovery Active</p>
                         <p className="text-[11px] text-emerald-700">
-                          Events are currently sorted by proximity to your coordinates ({userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}). Highlighted distances show how close events are to you.
+                          Verified events are sorted by proximity to your coordinates, and the web around <strong>{discoveredArea || 'your area'}</strong> is being scanned below. Highlighted distances show how close events are to you.
                         </p>
                       </div>
                     </div>
@@ -620,6 +640,7 @@ export default function App() {
                       onClick={() => {
                         setIsNearMeActive(false);
                         setUserLocation(null);
+                        setDiscoveredEvents([]);
                         triggerToast('Location awareness deactivated.', 'info');
                       }}
                       className="text-xs font-extrabold text-emerald-800 hover:text-emerald-950 px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 rounded-xl whitespace-nowrap cursor-pointer"
@@ -808,6 +829,49 @@ export default function App() {
                             </div>
                           ))}
                         </div>
+                      </div>
+                    )}
+
+                    {/* FOUND ON THE WEB — discovery runs only inside Near Me.
+                        Verified in-house listings above always come first;
+                        web finds are clearly UNVERIFIED and link to sources. */}
+                    {isNearMeActive && (
+                      <div className="space-y-4 border-t border-gray-100 pt-8">
+                        <div>
+                          <h3 className="font-sans font-black text-xl text-gray-950 flex items-center gap-2">
+                            🌐 Found on the web
+                            <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase border border-amber-200">
+                              Unverified
+                            </span>
+                          </h3>
+                          <p className="text-xs text-gray-500">
+                            {isDiscovering
+                              ? `Searching public event pages around ${discoveredArea || 'your area'}…`
+                              : discoveredEvents.length > 0
+                                ? `Web-sourced happenings around ${discoveredArea}. These come straight from the internet — the platform has not verified them.`
+                                : `No public web listings surfaced for ${discoveredArea || 'your area'} right now. Verified listings above are the ones we can vouch for.`}
+                          </p>
+                        </div>
+
+                        {isDiscovering ? (
+                          <div className="bg-white border border-dashed border-gray-200 rounded-2xl p-8 text-center">
+                            <span className="inline-block w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin"></span>
+                            <p className="text-xs text-gray-500 mt-3">Scanning ticketing platforms, venue pages and public listings…</p>
+                          </div>
+                        ) : discoveredEvents.length > 0 ? (
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {discoveredEvents.map((item) => (
+                              <DiscoveredCard
+                                key={item.id}
+                                item={item}
+                                onListIt={() => {
+                                  setAuthModalTab('Organizer');
+                                  setIsAuthModalOpen(true);
+                                }}
+                              />
+                            ))}
+                          </div>
+                        ) : null}
                       </div>
                     )}
 

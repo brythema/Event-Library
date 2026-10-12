@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { Calendar, MapPin, Clock, Heart, Share2, Ticket, Check } from 'lucide-react';
+import { Calendar, MapPin, Clock, Heart, Share2, Ticket, Check, BadgeCheck } from 'lucide-react';
 import { AbujaEvent, EventStatus } from '../types';
 import { formatCurrency } from '../utils';
 
@@ -97,6 +97,11 @@ export default function EventCard({
         {/* Category Badge */}
         <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold tracking-wider text-gray-800 uppercase shadow-xs">
           {event.category}
+        </div>
+
+        {/* Verification Badge — in-house listings are platform-verified */}
+        <div className="absolute top-11 left-3 inline-flex items-center gap-1 bg-emerald-600/95 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider text-white uppercase shadow-xs">
+          <BadgeCheck size={11} /> Verified
         </div>
 
         {/* Interested Button */}

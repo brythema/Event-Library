@@ -4,19 +4,60 @@
  *
  * Static Abuja reference data. Demo content (events/users/plans) lives in
  * scripts/seed-demo.mjs — the production app starts from an empty database.
+ *
+ * Areas cover the whole FCT plus the Greater-Abuja satellite towns across
+ * the boundaries (Nyanya/Karu/Mararaba in Nasarawa, Suleja in Niger, Zuba
+ * and the rest of the FCT outskirts). Coordinates are approximate district
+ * centres — good enough for "near me" distance sorting and discovery.
  */
 
 export const ABUJA_AREAS = [
+  // Core districts
+  'Central Business District',
+  'Garki',
+  'Wuse',
   'Wuse II',
   'Maitama',
-  'Garki',
   'Asokoro',
-  'Gwarinpa',
-  'Jabi',
-  'Central Business District',
+  'Wuye',
   'Utako',
+  'Jabi',
+  'Gwarinpa',
+  'Mabushi',
+  'Katampe',
+  'Jahi',
+  'Kado',
+  'Life Camp',
+  'Karmo',
+  'Dawaki',
+  'Idu Industrial',
+  'Durumi',
+  'Gudu',
+  'Galadimawa',
+  'Games Village',
+  'Gaduwa',
   'Apo',
   'Lokogoma',
+  'Duboyi',
+  'Kabusa',
+  // Outskirts & satellite towns (Greater Abuja)
+  'Nyanya',
+  'Karu',
+  'Mararaba',
+  'Jikwoyi',
+  'Kurudu',
+  'Orozo',
+  'Karshi',
+  'Kubwa',
+  'Dutse',
+  'Mpape',
+  'Lugbe',
+  'Zuba',
+  'Gwagwalada',
+  'Kuje',
+  'Bwari',
+  'Suleja',
+  'Dei-Dei',
 ];
 
 // Categories
@@ -29,11 +70,3 @@ export const EVENT_CATEGORIES = [
   'Nightlife & Parties',
   'Comedy & Theatre',
 ];
-
-// Let's seed events.
-// The current local date is 2026-07-08 (Wednesday).
-// Today's events: 2026-07-08
-// Tomorrow's events: 2026-07-09
-// Weekend events: 2026-07-10 (Fri), 2026-07-11 (Sat), 2026-07-12 (Sun)
-// Upcoming events: 2026-07-15 etc.
-// Past event to test archive: 2026-07-06

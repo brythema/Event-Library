@@ -122,17 +122,53 @@ export function formatCurrency(amount: number): string {
   return `₦${amount.toLocaleString()}`;
 }
 
+/* Approximate district-centre coordinates for "near me" distance sorting.
+   Covers the whole FCT plus the Greater-Abuja satellite towns. */
 export const AREA_COORDINATES: Record<string, { lat: number; lng: number }> = {
+  'Central Business District': { lat: 9.0556, lng: 7.4917 },
+  'Garki': { lat: 9.0333, lng: 7.4833 },
+  'Wuse': { lat: 9.0789, lng: 7.4722 },
   'Wuse II': { lat: 9.0778, lng: 7.4786 },
   'Maitama': { lat: 9.0882, lng: 7.4952 },
-  'Garki': { lat: 9.0333, lng: 7.4833 },
   'Asokoro': { lat: 9.0392, lng: 7.5194 },
-  'Gwarinpa': { lat: 9.1128, lng: 7.4069 },
-  'Jabi': { lat: 9.0733, lng: 7.4261 },
-  'Central Business District': { lat: 9.0556, lng: 7.4917 },
+  'Wuye': { lat: 9.0810, lng: 7.4570 },
   'Utako': { lat: 9.0667, lng: 7.4444 },
+  'Jabi': { lat: 9.0733, lng: 7.4261 },
+  'Gwarinpa': { lat: 9.1128, lng: 7.4069 },
+  'Mabushi': { lat: 9.0833, lng: 7.4667 },
+  'Katampe': { lat: 9.0917, lng: 7.4250 },
+  'Jahi': { lat: 9.0967, lng: 7.4389 },
+  'Kado': { lat: 9.1033, lng: 7.4233 },
+  'Life Camp': { lat: 9.1000, lng: 7.4333 },
+  'Karmo': { lat: 9.1300, lng: 7.3833 },
+  'Dawaki': { lat: 9.1250, lng: 7.3667 },
+  'Idu Industrial': { lat: 9.0600, lng: 7.3833 },
+  'Durumi': { lat: 9.0100, lng: 7.4600 },
+  'Gudu': { lat: 9.0000, lng: 7.4444 },
+  'Galadimawa': { lat: 8.9833, lng: 7.4333 },
+  'Games Village': { lat: 9.0000, lng: 7.4778 },
+  'Gaduwa': { lat: 8.9933, lng: 7.4600 },
   'Apo': { lat: 9.0061, lng: 7.4878 },
   'Lokogoma': { lat: 8.9753, lng: 7.4258 },
+  'Duboyi': { lat: 8.9867, lng: 7.4467 },
+  'Kabusa': { lat: 8.9533, lng: 7.5000 },
+  'Nyanya': { lat: 8.9894, lng: 7.5694 },
+  'Karu': { lat: 8.9889, lng: 7.5833 },
+  'Mararaba': { lat: 8.9667, lng: 7.6000 },
+  'Jikwoyi': { lat: 9.0000, lng: 7.5500 },
+  'Kurudu': { lat: 9.0167, lng: 7.5833 },
+  'Orozo': { lat: 9.0500, lng: 7.6167 },
+  'Karshi': { lat: 9.0333, lng: 7.6333 },
+  'Kubwa': { lat: 9.1167, lng: 7.3333 },
+  'Dutse': { lat: 9.1400, lng: 7.3483 },
+  'Mpape': { lat: 9.1333, lng: 7.4333 },
+  'Lugbe': { lat: 8.9833, lng: 7.3833 },
+  'Zuba': { lat: 9.1333, lng: 7.2333 },
+  'Gwagwalada': { lat: 8.9500, lng: 7.0833 },
+  'Kuje': { lat: 8.9000, lng: 7.1667 },
+  'Bwari': { lat: 9.3167, lng: 7.3667 },
+  'Suleja': { lat: 9.2000, lng: 7.1833 },
+  'Dei-Dei': { lat: 9.1667, lng: 7.2833 },
 };
 
 export function getDistanceInKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -146,6 +182,18 @@ export function getDistanceInKm(lat1: number, lon1: number, lat2: number, lon2: 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const d = R * c; // Distance in km
   return d;
+}
+
+/* Resolve coordinates to the closest known area. Anything beyond ~25 km from
+   every district centre (e.g. a visitor from another state) falls back to
+   the capital-wide search. */
+export function nearestArea(lat: number, lng: number): { area: string; distanceKm: number } {
+  let best = { area: 'Central Business District', distanceKm: Infinity };
+  for (const [area, coords] of Object.entries(AREA_COORDINATES)) {
+    const distanceKm = getDistanceInKm(lat, lng, coords.lat, coords.lng);
+    if (distanceKm < best.distanceKm) best = { area, distanceKm };
+  }
+  return best;
 }
 
 /* The organizer-visible display name for a user, falling back gracefully. */

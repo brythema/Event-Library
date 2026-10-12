@@ -13,3 +13,8 @@ service-account*.json
 
 .vercel
 .atlas/
+
+# oauth capture artifacts
+scripts/.oauth-tokens.json
+.env.serper
+.env.gemini

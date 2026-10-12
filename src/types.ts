@@ -124,3 +124,18 @@ export interface AppData {
   bookings: Booking[];
   notifications: Notification[];
 }
+
+/* Web-discovered event — comes from /api/discover (Gemini + Google Search),
+   never from the in-house database. Always rendered as UNVERIFIED and
+   below verified in-house listings. */
+export interface DiscoveredEvent {
+  id: string;
+  title: string;
+  date: string; // YYYY-MM-DD or ''
+  venue: string;
+  area: string;
+  description: string;
+  sourceUrl: string;
+  sourceName: string;
+  isDiscovered: true;
+}

@@ -104,6 +104,17 @@ export async function getDoc(collectionName, docId) {
   return { name: json.name, fields: json.fields || {}, data: () => fromFirestoreFields(json.fields) };
 }
 
+/* Plain (non-transactional) write — fine for caches and idempotent docs. */
+export async function setDoc(collectionName, docId, data) {
+  const token = await accessToken();
+  const res = await fetch(`${BASE}/${collectionName}/${docId}`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields: toFirestoreFields(data) })
+  });
+  if (!res.ok) throw new Error(`firestore set failed: ${res.status}`);
+}
+
 /* ------------------------------- transactions -------------------------------- */
 
 const MAX_ATTEMPTS = 10;
