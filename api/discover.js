@@ -2,17 +2,20 @@
 
    POST /api/discover { area } → { area, bucket, fetchedAt, cached, results[] }
 
-   Engine: Serper.dev (Google SERP results; 2,500 free queries at signup,
+   Engine: Serper.dev (Google SERP results; 2,500 free credits at signup,
    no credit card). Two complementary queries per area, deduped and shaped
    into mini-cards. No social-media API contracts, no scraping.
 
    Cost control: results are cached in Firestore per area + UTC-day bucket,
-   so repeated clicks are instant and the whole metro costs a few queries
-   per day. The cache lives through the service account; the browser never
-   touches Firestore for discovery, so no rules changes were needed.
+   so repeated clicks are instant and each area costs two queries at most
+   per day — full 44-area coverage would burn ~88 credits/day, so the
+   credits run is plenty for launch-scale traffic (top-up available in
+   the Serper dashboard if ever needed). The cache lives through the
+   service account; the browser never touches Firestore for discovery, so
+   no rules changes were needed.
 
-   Results are UNVERIFIED by definition — the client labels them as such and
-   always renders them BELOW the in-house (verified) listings. */
+   Results are UNVERIFIED by definition — the client labels them as such
+   and always renders them BELOW the in-house (verified) listings. */
 import { getDoc, setDoc } from './_lib/firestore-rest.js';
 
 const SERPER_URL = 'https://google.serper.dev/search';
@@ -63,7 +66,7 @@ function cleanTitle(title) {
 }
 
 /* Serper organic results sometimes carry a "date" ("3 days ago", "12 Dec
-   2026"). Try structured date first, then heuristics from title/snippet.
+   2026"). Read it when present, then heuristics from title/snippet.
    Empty when nothing convincing — the UI shows "Date not confirmed". */
 function extractDate(item, text) {
   const raw = String(item?.date || '');
@@ -76,7 +79,7 @@ function extractDate(item, text) {
     new RegExp(`(\\d{1,2})(?:st|nd|rd|th)?\\s+(${months})[a-z]*\\s+(\\d{4})`, 'i'),
     new RegExp(`(${months})[a-z]*\\s+(\\d{1,2})(?:st|nd|rd|th)?,?\\s+(\\d{4})`, 'i'),
     new RegExp(`(\\d{1,2})(?:st|nd|rd|th)?\\s+(${months})[a-z]*`, 'i'),
-    new RegExp(`(${months})[a-z]*\\s+(\\d{1,2})(?:st|nd|rd|th)?`, 'i')
+    new RegExp(`(${months})[a-z]*\\s+(\\d{1,2})(?:st|nd|th)?`, 'i')
   ];
   for (const [i, p] of patterns.entries()) {
     const m = t.match(p);
@@ -132,7 +135,7 @@ function normalizeOrganic(organic, fallbackArea) {
       description: String(item?.snippet || '').trim().slice(0, 240),
       sourceUrl: link.slice(0, 500),
       sourceName: String(item?.displayLink || new URL(link).hostname || '').replace(/^www\./, '').slice(0, 60),
-      isDiscovered: true,
+      isDiscovered: true
     });
     if (out.length >= MAX_RESULTS) break;
   }
@@ -144,20 +147,25 @@ async function webSearch(area) {
   if (!apiKey) throw new Error('discovery is not configured (missing Serper key)');
 
   const merged = [];
+  let okQueries = 0;
   for (const q of buildQueries(area)) {
     const res = await fetch(SERPER_URL, {
       method: 'POST',
       headers: { 'X-API-KEY': apiKey, 'Content-Type': 'application/json' },
       body: JSON.stringify({ q, gl: 'ng', hl: 'en', num: 10 })
     });
+    /* A failed query must not sink the whole discovery — take whatever
+       the other query returned instead. */
     if (!res.ok) {
       const body = await res.text().catch(() => '');
-      throw new Error(`serper ${res.status}: ${body.slice(0, 200)}`);
+      console.error(`serper query ${res.status} (${q}): ${body.slice(0, 200)}`);
+      continue;
     }
+    okQueries += 1;
     const json = await res.json();
     merged.push(...(json.organic || []));
   }
-  return normalizeOrganic(merged, area);
+  return { events: normalizeOrganic(merged, area), okQueries };
 }
 
 export default async function handler(req, res) {
@@ -206,11 +214,17 @@ export default async function handler(req, res) {
     }
 
     served.cached = false;
-    served.results = await webSearch(area);
+    const { events, okQueries } = await webSearch(area);
+    served.results = events;
     served.fetchedAt = new Date().toISOString();
-    await setDoc(CACHE_COLLECTION, key, {
-      area, bucket, fetchedAt: served.fetchedAt, results: served.results
-    }).catch((e) => console.error('discover cache write failed:', e.message));
+    /* Only cache a result when at least one query actually succeeded —
+       an all-failed fetch (bad key, quota) must not poison the day's
+       cache with an empty answer. */
+    if (okQueries > 0) {
+      await setDoc(CACHE_COLLECTION, key, {
+        area, bucket, fetchedAt: served.fetchedAt, results: served.results
+      }).catch((e) => console.error('discover cache write failed:', e.message));
+    }
     res.status(200).json(served);
   } catch (error) {
     console.error('discover failed:', error.message);

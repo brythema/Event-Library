@@ -21,8 +21,8 @@
         rejected (409), plan/event mismatch rejected (400)
      7. admin verifies the booking; the buyer cannot self-confirm (rules)
      8. /api/discover: validates the area, degrades gracefully while the
-        Serper key is not configured, and (once configured) returns shaped,
-        cached web results
+        search-engine key is not configured, and (once configured) returns
+        shaped, cached web results
      9. cleanup removes every trace (docs, fixture, accounts)
 
    Exit code 0 only when every step passes. */
@@ -331,7 +331,7 @@ try {
       report('discover degrades gracefully while the engine is unconfigured', Array.isArray(r.json.results) && r.json.results.length === 0, `${r.json.note || 'no results'}`);
     } else {
       const ok = r.status === 200 && Array.isArray(r.json?.results) && r.json.results.every((x) => x && typeof x.title === 'string' && typeof x.sourceUrl === 'string' && x.isDiscovered === true);
-      report('discover returns shaped web results (Serper configured)', ok, `status ${r.status}, ${r.json?.results?.length ?? 0} results, cached=${r.json?.cached ?? '-'}`);
+      report('discover returns shaped web results (engine configured)', ok, `status ${r.status}, ${r.json?.results?.length ?? 0} results, cached=${r.json?.cached ?? '-'}`);
       if (ok) {
         const again = await post(`${BASE}/api/discover`, JSON.stringify({ area: 'Gwarinpa' }), { 'Content-Type': 'application/json' });
         report('discover serves repeat calls from the cache', again.status === 200 && again.json?.cached === true, `cached=${again.json?.cached ?? '-'}`);
